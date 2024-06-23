@@ -1,0 +1,393 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM060_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM060_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM060_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZBB_MM060_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+  PERFORM user_command_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+  PERFORM exit.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0110 INPUT.
+
+  CASE ok_code2.
+    WHEN 'FCODE1'.
+      PERFORM check_data.
+      PERFORM create_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0120 INPUT.
+  CASE ok_code3.
+    WHEN 'FCODE3'.
+      PERFORM update_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE s010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_VENNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE on_venno_f4 INPUT.
+
+  DATA: lt_return       LIKE TABLE OF ddshretval      WITH HEADER LINE.
+
+  TYPES: BEGIN OF ty_venno,
+           venno LIKE zbbt_mm030-venno,
+           vennm LIKE zbbt_mm030-vennm,
+         END OF ty_venno.
+  DATA : lt_venno TYPE TABLE OF ty_venno,
+         ls_venno TYPE ty_venno.
+
+  SELECT venno, vennm
+   INTO TABLE @lt_venno
+   FROM zbbt_mm030
+  WHERE delflag &lt;&gt; 'X'.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'VENNO'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-cprog
+      dynpnr       = sy-dynnr
+      dynprofield  = 'LT_VENNO-VENNO'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '거래처'            "팝업 제목"
+      value_org    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_venno            "select때 사용한 인터널 테입블
+      return_tab   = lt_return.        "선택한 값이 리턴될 인터널 테이블
+
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VENNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_venno INPUT.
+  DATA : lv_venno TYPE zbbt_mm030-venno.
+
+  IF  zbbt_mm030-venno IS NOT INITIAL .
+    SELECT SINGLE venno INTO lv_venno
+      FROM zbbt_mm030
+      WHERE venno = zbbt_mm030-venno.
+
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE e000 WITH '데이터베이스에 존재하지 않는 거래처입니다.'.
+      CLEAR zbbt_mm030-venno.
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VENNM  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vennm INPUT.
+  DATA : lv_vennm TYPE zbbt_mm030-vennm.
+
+  IF  zbbt_mm030-vennm IS INITIAL.
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+
+  ELSEIF zbbt_mm030-vennm IS NOT INITIAL.
+    SELECT SINGLE vennm INTO lv_vennm
+      FROM zbbt_mm030
+      WHERE vennm = zbbt_mm030-vennm
+      AND delflag &lt;&gt; 'X'.
+
+    IF sy-subrc EQ 0.
+      MESSAGE e000 WITH '동일한 거래처가 존재합니다.'.
+    ENDIF.
+
+    LOOP AT gt_mm030 INTO gs_mm030.
+      IF gs_mm030-vennm EQ zbbt_mm030-vennm.
+        MESSAGE e000 WITH '동일한 이름의 거래처가 존재합니다.'.
+      ENDIF.
+      LEAVE LIST-PROCESSING.
+    ENDLOOP.
+
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VREG1  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vreg1 INPUT.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vreg1
+    IMPORTING
+      htype     = gv_type.
+
+  IF vreg1 IS INITIAL .
+    MESSAGE e000 WITH '첫번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vreg1 ) &lt;&gt; 3 OR gv_type NE 'NUMC' .
+    MESSAGE e000 WITH '첫번째 입력란은 3자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VREG2  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vreg2 INPUT.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vreg2
+    IMPORTING
+      htype     = gv_type.
+
+  IF vreg2 IS INITIAL.
+    MESSAGE e000 WITH '두번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vreg2 ) &lt;&gt; 2 OR gv_type NE 'NUMC'.
+    MESSAGE e000 WITH '두번째 입력란은 2자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VREG3  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vreg3 INPUT.
+  DATA : lv_vregno TYPE zbbt_mm030-vregno.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vreg3
+    IMPORTING
+      htype     = gv_type.
+
+  IF vreg3 IS INITIAL.
+    MESSAGE e000 WITH '세번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vreg3 ) &lt;&gt; 5 OR gv_type NE 'NUMC'.
+    MESSAGE e000 WITH '세번째 입력란은 5자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+
+  CONCATENATE vreg1 '-' vreg2 '-' vreg3 INTO gv_vregno.
+
+  IF gv_vregno IS NOT INITIAL.
+    SELECT SINGLE vregno INTO lv_vregno
+      FROM zbbt_mm030
+      WHERE vregno = gv_vregno.
+
+    IF sy-subrc EQ 0.
+      MESSAGE e000 WITH '동일한 사업자등록번호가 존재합니다.'.
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VTEL1  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vtel1 INPUT.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vtel1
+    IMPORTING
+      htype     = gv_type.
+
+  IF vtel1 IS INITIAL .
+    MESSAGE e000 WITH '첫번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vtel1 ) &lt; 2 OR strlen( vtel1 ) &gt; 3 OR gv_type NE 'NUMC' .
+    MESSAGE e000 WITH '첫번째 입력란은 2~3자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VTEL2  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vtel2 INPUT.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vtel2
+    IMPORTING
+      htype     = gv_type.
+
+  IF vtel2 IS INITIAL .
+    MESSAGE e000 WITH '두번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vtel2 ) &lt;&gt; 4 OR gv_type NE 'NUMC' .
+    MESSAGE e000 WITH '두번째 입력란은 4자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VTEL3  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vtel3 INPUT.
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = vtel3
+    IMPORTING
+      htype     = gv_type.
+
+  IF vtel3 IS INITIAL .
+    MESSAGE e000 WITH '첫번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( vtel3 ) &lt;&gt; 4 OR gv_type NE 'NUMC'.
+    MESSAGE e000 WITH '세번째 입력란은 4자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+
+  IF gv_vtel IS NOT INITIAL.
+    SELECT SINGLE vregno INTO lv_vregno
+      FROM zbbt_mm030
+      WHERE vregno = gv_vtel.
+
+    IF sy-subrc EQ 0.
+      MESSAGE i000 WITH '동일한 전화번호가 존재합니다.'.
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  GET_CURSOR  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE get_cursor INPUT.
+  GET CURSOR FIELD cursorfield.    "현재 커서의 위치를 가져옴
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  SET_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE set_data INPUT.
+
+  "거래처 명 공백 제거
+  CONDENSE zbbt_mm030-vennm NO-GAPS.
+  TRANSLATE zbbt_mm030-vennm TO UPPER CASE.
+
+  "예금주명 공백 제거
+  CONDENSE zbbt_mm030-deponm NO-GAPS.
+
+  "거래처 담당자 공백 제거
+  CONDENSE zbbt_mm030-vpicnm NO-GAPS.
+
+  "거래처 주소 선행 공백 제거
+  SHIFT zbbt_mm030-venadd LEFT DELETING LEADING space.
+
+  "계좌번호 공백 제거
+  CONDENSE zbbt_mm030-baccno NO-GAPS.
+
+  "은행선택 시 계좌번호 입력 양식 지정
+  CASE zbbt_mm030-banknm.
+    WHEN '01'.                "KB국민은행
+      banktype = '* 형식: XXXXYY(6)-ZZ(2)-ZZZZZC(6)'.
+    WHEN '02'.                "신한은행
+      banktype = '* 형식: YYY(3)-ZZZ(3)-ZZZZZC(6)'.
+    WHEN '03'.                "우리은행
+      banktype = '* 형식: YYYY(4)-CZZ(3)-ZZZZZZ(6)'.
+    WHEN '04'.                 "하나은행
+      banktype = '* 형식: XXX(3)-ZZZZZZ(6)-ZZCYY(5) '.
+    WHEN '05'.                  "SC제일은행
+      banktype = '* 형식: XXX(3)-YY(2)-ZZZZZC(6)'.
+    WHEN '06'.                  "한국 씨티은행
+      banktype = '* 형식: YYY(3)-ZZZ(3)-ZZZZZC(6)'.
+  ENDCASE. .
+
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VPICNM  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_vpicnm INPUT.
+  IF zbbt_mm030-vpicnm IS INITIAL .
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+    "거래처 담당자 공백 제거
+    CONDENSE zbbt_mm030-vpicnm NO-GAPS.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_VENADD  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_venadd INPUT.
+  IF zbbt_mm030-venadd IS INITIAL .
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+  "거래처 주소 선행 공백 제거
+  SHIFT zbbt_mm030-venadd LEFT DELETING LEADING space.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_BACCNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_baccno INPUT.
+  IF zbbt_mm030-baccno IS INITIAL .
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+  "계좌번호 공백 제거
+  CONDENSE zbbt_mm030-baccno NO-GAPS.
+  ENDIF.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

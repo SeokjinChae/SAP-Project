@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_PP050</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_PP050</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-PP] 생산계획 조회 및 생성</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_PP050</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_PP050</font>
+<font color ="#0000FF">*& DESCRIPTION :  생산계획 조회 및 생성</font>
+<font color ="#0000FF">*& MODULE      : PP</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-25 (최종욱)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.23</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  ACA2-25        2024.04.23         신규 개발</font>
+<font color ="#0000FF">*  ACA2-25        2024.04.30         전면 수정 시작. 최종욱은 차무식이었다......</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.02         차무식 2. 원래 스크린을 여러개 만들라했는데, 백팀장님의 조언에 따라 불필요한 기능 제거.</font>
+<font color ="#0000FF">*                                    헤더랑 아이템 상세정보만 뜨게 하고, 헤더정보에 필드(생산계획번호)만 추가해서 자동채번 버튼 구현하자</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.04         생산계획 생성 시, 하단 그리드에 판매계획 헤더에 대한 아이템(원자재 정보) 더블클릭 이벤트 구현. 아직 생산계획번호 자동채번 버튼필드 미구현, CRUD 미구현</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.05         신호등 데이터(MAKE_DATA2)개발 중. 근데 메모리 부족하다는 오류가 계속 뜸. 내 뇌 메모리도 부족한데 너가 왜부족하니 -&gt; 해결</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.06         프로그램에 [반쪽짜리] 치고 보기.</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.09         업로드 또는 삭제할 아이템은 GT_PP030에 저장되게 바꿈. 그리고 팝업 통해 저장할려고함. 찾을라면 폼문 맨아래 보셈.</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.10         업로드 구현 중. 근데 루프 안에서 GV_PPLANNO를 인식하지 못하는 듯 함. 이거 해결하려면 USING 파라미터 쓰거나, 귀찮으면 아예 그냥 밖으로 빼는 것도 방법일 듯 ?</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.11         업로드 일부 구현 완료. 헤더 정보 정상적으로 들어감. 남은 구현사항 하단 서술. 하단은 5.11 내로 꼭 완료할 것 !</font>
+<font color ="#0000FF">*                                    1. 헤더 정보 업로드할 때, 아이템 정보도 업로드되게 할 것. 헤더 O / 아이템 X 저장되는 일은 없게 유효성 검사 잘하기</font>
+<font color ="#0000FF">*                                    2. 헤더와 아이템이 성공적으로 저장되었으면, SD070(판매계획 헤더)의 필드 중 SPLANYN(판매계획 실행여부) 도 0 -&gt; 1로 바꿔주어야 함</font>
+<font color ="#0000FF">*                                    3. 생산계획 생성 -&gt; ALV 뜨기전 판매계획 정보 가져올때, SPLANYN이 1인 것은 가져오지 않게 바꾸기</font>
+<font color ="#0000FF">*                                    4. 생산계획 생성 -&gt; ALV 뜨기전 판매계획 정보 가져올때, 판매계획연도,판매계획월이 이미 지난 것은 가져오지 않게 하기 -&gt; 이건 강사님이 말씀하신거긴 한데,</font>
+<font color ="#0000FF">*                                       우리는 레코드 유지 목적으로 남겨놓을 수도 있으니깐 선장 부선장 팀장들께 물어보자 -&gt; 유지안하면 편하긴 한데, 만약 유지한다면 유효성검사 측면에서 날짜 지난거는 생산계획 못세우게 한다거나 해야할듯.</font>
+<font color ="#0000FF">*                                    5. 백팀장님께 물어봐서 PPLANTXT 이름 맞추기.</font>
+<font color ="#0000FF">*                                    6. 생산계획 수정 삭제 생산 중, 생산과 삭제는 꼭 필요할 것 같은데.....수정이 꼭 필요할까...? 이것도 선장단에게 물어보자</font>
+<font color ="#0000FF">*  ACA2-25        2024.05.14         U미완. 생성 및 삭제 이후 화면에 반영하는 것 미구현.</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZBB_PP050 MESSAGE-ID ZBB_MSG.
+
+include <a href ="zbb_pp050_top.html">ZBB_PP050_TOP</a>.
+include <a href ="zbb_pp050_s01.html">ZBB_PP050_S01</a>.
+include <a href ="zbb_pp050_c01.html">ZBB_PP050_C01</a>.
+
+include <a href ="zbb_pp050_o01.html">ZBB_PP050_O01</a>.
+include <a href ="zbb_pp050_i01.html">ZBB_PP050_I01</a>.
+
+include <a href ="zbb_pp050_e01.html">ZBB_PP050_E01</a>.
+include <a href ="zbb_pp050_f01.html">ZBB_PP050_F01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; [SAP ssarum-PP] 생산계획 조회 및 생성</font>
+<font color ="#0000FF">* T200 --&gt; [SAP ssarum-PP] 생산계획 조회 및 생성</font>
+<font color ="#0000FF">* TITLE_0210 --&gt; 생산계획 생성</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 조회조건</font>
+<font color ="#0000FF">* T02 선택조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_ALL         전체조회</font>
+<font color ="#0000FF">* PA_MAKE         생산계획 생성</font>
+<font color ="#0000FF">* PA_PLO         승인</font>
+<font color ="#0000FF">* PA_PLX         승인대기</font>
+<font color ="#0000FF">* PA_VIEW         생산계획 조회</font>
+<font color ="#0000FF">* SO_ENO         직원번호</font>
+<font color ="#0000FF">* SO_PDT         생산계획일</font>
+<font color ="#0000FF">* SO_PNO         생산계획번호</font>
+<font color ="#0000FF">* SO_PSDT         생산계획 수립일자</font>
+<font color ="#0000FF">* SO_SDT         판매계획 수립일자</font>
+<font color ="#0000FF">* SO_SENO         직원번호</font>
+<font color ="#0000FF">* SO_SNO         판매계획번호</font>
+<font color ="#0000FF">* SO_SPM         판매계획월</font>
+<font color ="#0000FF">* SO_SPY         판매계획년</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   FORM CALL_DISPLAY0 오류 발생.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*001   데이터 생성에 성공했습니다.</font>
+<font color ="#0000FF">*005   데이터 저장을 취소했습니다.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*144   생산오더가 만들어진 생산계획은 삭제할 수 없습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

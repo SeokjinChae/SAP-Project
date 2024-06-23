@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD060_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD060_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_SD060_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include MZBB_SD060_TOP                           - Module Pool      SAPMZBB_SD060</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM sapmzbb_sd060  MESSAGE-ID zbb_msg.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* SCREEN 요소</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+" Range변수 선언
+RANGES gr_matno FOR zbbt_sd090-matno.
+
+DATA : gv_matno_l TYPE zbbt_sd090-matno,
+       gv_matno_h TYPE zbbt_sd090-matno.
+
+DATA : ok_code  TYPE sy-ucomm.
+
+DATA : go_cont TYPE REF TO cl_gui_custom_container,
+       go_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : gt_field_cat TYPE lvc_t_fcat,
+       gs_field_cat TYPE lvc_s_fcat.
+
+DATA : gs_layout TYPE lvc_s_layo.
+
+DATA : gs_exclude_func TYPE ui_func,
+       gt_exclude_func TYPE ui_functions.
+
+DATA : gs_row  TYPE lvc_s_row,
+       gt_rows TYPE lvc_t_row.
+
+DATA : gv_input.
+
+DATA : gv_mark TYPE string.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ABAP 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+TABLES : zbbt_sd090.
+
+CLASS : lcl_event_handler DEFINITION DEFERRED.
+DATA : go_handler TYPE REF TO LCL_event_handler. "참조변수
+
+CONSTANTS : gc_x VALUE 'X'.
+
+TYPES : BEGIN OF zty_line.
+          include structure <a href ="zbbt_sd090/dictionary-zbbt_sd090.html">zbbt_sd090</a>.
+TYPES :   matnm       TYPE zbbt_mm020-matnm,
+          mattype     TYPE zbbt_mm020-mattype,
+          mattype_txt TYPE c LENGTH 3,
+          mark        TYPE c LENGTH 1,     " I (삽입), D (삭제), M (수정)
+          light       TYPE c LENGTH 1,    "신호등
+          color       TYPE c LENGTH 4,
+<font color ="#0000FF">*          celltab TYPE lvc_t_styl, " 셀별 스타일</font>
+<font color ="#0000FF">*          cellcol type lvc_t_scol,</font>
+        END OF zty_line.
+DATA : gs_sd090 TYPE zty_line,
+       gt_sd090 TYPE TABLE OF zty_line.
+
+" DB 테이블 타입
+DATA : gt_sd090_db TYPE TABLE OF zbbt_sd090,
+       gs_data_db  TYPE zbbt_sd090.
+
+" 삭제 테이블
+DATA : gt_del TYPE TABLE OF zty_line,
+       gs_del TYPE zty_line.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

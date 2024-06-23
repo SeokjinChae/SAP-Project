@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM020_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM020_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_MM020_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM020_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+      CLEAR: ZBBT_MM050-PURORDNO, ZBBT_MM050-MATNO, ZBBT_MM050-DUEDATE,
+             GV_WHERE1, GV_WHERE2, GV_WHERE3.
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCGET1' OR 'FCGET2' OR 'FCGET3'.
+      MY_TABSTRIP-ACTIVETAB = OK_CODE.
+    WHEN 'FCSET'.
+      MY_TABSTRIP-ACTIVETAB = OK_CODE.
+      CLEAR: GT_FILTER.
+      PERFORM DISPLAY_GRID_VIEW.
+    WHEN 'PORVIEW'. " 구매오더
+      PERFORM PORVIEW_ANSWER.
+    WHEN 'PFMVIEW'. " 생산실적
+      PERFORM PFMVIEW_ANSWER.
+    WHEN 'STOCK'.   " 재고조회
+      PERFORM STOCK_ANSWER.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0110 INPUT.
+  PERFORM USER_COMMAND_0110.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DATA INPUT.
+  PERFORM CHECK_DATA.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0111  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0111 INPUT.
+  CASE OK_CODE.
+    WHEN 'IN'. "check 클릭
+      PERFORM IN_0111. "입고처리
+      PERFORM REFRESH.
+      LEAVE TO SCREEN 0. "창닫기
+
+    WHEN 'CANCEL'.
+      CLEAR: ZBBT_MM070.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0120 INPUT.
+  PERFORM USER_COMMAND_0120.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0121  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0121 INPUT.
+  CASE OK_CODE.
+    WHEN 'CHECK'. "check 클릭
+      PERFORM IN_0121. "완제품 입고 처리
+      PERFORM REFRESH_0121.
+      LEAVE TO SCREEN 0. "창닫기
+
+    WHEN 'CANCEL'.
+      CLEAR: ZBBT_PP070. " , ZBBT_MM080.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0131  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0131 INPUT.
+  CASE OK_CODE.
+    WHEN 'CHECK'. "check 클릭
+      PERFORM IN_0131. "유통기한 초과 폐기 입고 처리
+      PERFORM REFRESH_0131.
+      LEAVE TO SCREEN 0. "창닫기
+
+    WHEN 'CANCEL'.
+      CLEAR: ZBBT_MM090. " , ZBBT_MM080.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA2  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DATA2 INPUT.
+  PERFORM CHECK_DATA2.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA3  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DATA3 INPUT.
+  PERFORM CHECK_DATA3.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

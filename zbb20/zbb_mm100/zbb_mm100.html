@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM100</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM100</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-MM] 자재 재고 조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZTREE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_MM100</font>
+<font color ="#0000FF">*& DESCRIPTION : [MM] 자재 재고 조회</font>
+<font color ="#0000FF">*& MODULE      : MM</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-20 (이현석)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.05.06</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ACA2-20        2024.05.06      프로그램 생성</font>
+<font color ="#0000FF">* ACA2-20        2024.05.07      Node 설정 완료, Fcat 수정 필요</font>
+<font color ="#0000FF">* ACA2-20        2024.05.08      덤프 해결 (sy-tabix, seq)</font>
+<font color ="#0000FF">* ACA2-20        2024.05.08      ALV Fcat 활용 유통기한 관리 (신호등) 필요</font>
+<font color ="#0000FF">* ACA2-20        2024.05.11      유통기한에 따른 Light & Color 적용 완료</font>
+<font color ="#0000FF">* ACA2-20        2024.05.11      메세지 기능 추가 완료</font>
+<font color ="#0000FF">* ACA2-20        2024.05.12      Valid Check 구현 완료</font>
+<font color ="#0000FF">* ACA2-20        2024.05.16      유통기한 범례 추가 (2차 기능으로 핫스팟-&gt;구매오더/생산실적번호 구상 중)</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+REPORT ZBB_MM100 MESSAGE-ID ZBB_MSG.
+
+include <a href ="zbb_mm100_top.html">ZBB_MM100_TOP</a>.  " Global Data
+include <a href ="zbb_mm100_s01.html">ZBB_MM100_S01</a>.  " Selection screen
+include <a href ="zbb_mm100_c01.html">ZBB_MM100_C01</a>.  " ALV Events
+
+include <a href ="zbb_mm100_o01.html">ZBB_MM100_O01</a>.  " PBO-Modules
+include <a href ="zbb_mm100_i01.html">ZBB_MM100_I01</a>.  " PAI-Modules
+include <a href ="zbb_mm100_f01.html">ZBB_MM100_F01</a>.  " FORM-Routines
+
+include <a href ="zbb_mm100_e01.html">ZBB_MM100_E01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE100 --&gt; [C6] Tree and ALV</font>
+<font color ="#0000FF">* TITLE_100 --&gt; [MM] 자재 재고 조회</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* E01 노드를 클릭해주세요.</font>
+<font color ="#0000FF">* M01 @5C@ : 6개월 이내</font>
+<font color ="#0000FF">* M02 @5D@ : 6개월~1년 이내</font>
+<font color ="#0000FF">* M03 @5B@ : 1년 이상</font>
+<font color ="#0000FF">* T01 조회조건</font>
+<font color ="#0000FF">* T02 긴급도</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* SO_MNO         자재코드</font>
+<font color ="#0000FF">* SO_SNO         창고번호</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   FORM BUILD_NODE 오류.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*008   데이터 조회에 실패했습니다.</font>
+<font color ="#0000FF">*009   &건의 데이터 조회에 성공했습니다.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*013   이동이 완료되었습니다.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

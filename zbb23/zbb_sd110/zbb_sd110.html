@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD110</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD110</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-SD] 구독 서비스 사용자 조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_SKELETON</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_SD110</font>
+<font color ="#0000FF">*& DESCRIPTION : 구독 서비스 사용자 조회</font>
+<font color ="#0000FF">*& MODULE      : SD</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-23 (채석진)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.17</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE           DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-23        2024.04.17      신규 개발</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZBB_SD110 MESSAGE-ID zbb_msg."message-id msgid.
+
+include <a href ="zbb_sd110_top.html">ZBB_SD110_TOP</a>.
+include <a href ="zbb_sd110_c01.html">ZBB_SD110_C01</a>.
+include <a href ="zbb_sd110_o01.html">ZBB_SD110_O01</a>.
+include <a href ="zbb_sd110_i01.html">ZBB_SD110_I01</a>.
+include <a href ="zbb_sd110_f01.html">ZBB_SD110_F01</a>.
+
+include <a href ="zbb_sd110_e01.html">ZBB_SD110_E01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T100 --&gt; [SAP ssarum-SD] 구독 서비스 사용자 조회</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 001 조회조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* SO_CUSNO         고객번호</font>
+<font color ="#0000FF">* SO_ORDNO         주문번호</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: BC405_408</font>
+<font color ="#0000FF">*010   Error creating the container object</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   일치하는 데이터가 없습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

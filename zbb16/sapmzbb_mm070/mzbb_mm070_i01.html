@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM070_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM070_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM070_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM070_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+  PERFORM user_command_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+  PERFORM exit.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0110 INPUT.
+  CASE ok_code2.
+    WHEN 'FCODE1'.
+      PERFORM check_data.
+      PERFORM create_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      MESSAGE s010.    "취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0120 INPUT.
+  CASE ok_code3.
+    WHEN 'FCODE3'.
+      PERFORM upload_excel.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE s010.  "취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0130 INPUT.
+  CASE ok_code4.
+    WHEN 'FCODE5'.
+      PERFORM update_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'.
+      MESSAGE s010.  "취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_STORNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE on_storno_f4 INPUT.
+  DATA: lt_return       LIKE TABLE OF ddshretval  WITH HEADER LINE.
+
+  TYPES: BEGIN OF ty_storno,
+           storno LIKE zbbt_mm010-storno,
+           stornm LIKE zbbt_mm010-stornm,
+           storty LIKE zbbt_mm010-storty,
+         END OF ty_storno.
+
+  DATA : lt_storno TYPE TABLE OF ty_storno,
+         ls_storno TYPE ty_storno.
+
+  "삭제된 창고번호는 나오지 않게 설정
+  SELECT storno, stornm, storty
+   INTO TABLE @lt_storno
+   FROM zbbt_mm010
+  WHERE delflag &lt;&gt; 'X'.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'STORNO'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-cprog
+      dynpnr       = sy-dynnr
+      dynprofield  = 'LT_STORNO-STORNO'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '창고'                 "팝업 제목"
+      value_org    = 'S'                  "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_storno            "select때 사용한 인터널 테입블
+      return_tab   = lt_return.           "선택한 값이 리턴될 인터널 테이블
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  GET_CURSOR  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE get_cursor INPUT.
+  GET CURSOR FIELD cursorfield.    "현재 커서의 위치를 가져옴
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STEL1  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_stel1 INPUT.
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = stel1
+    IMPORTING
+      htype     = gv_type.
+
+  IF stel1 IS INITIAL .
+    MESSAGE e000 WITH '첫번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( stel1 ) &lt; 2 OR strlen( stel1 ) &gt; 3 OR gv_type NE 'NUMC' .
+    MESSAGE e000 WITH '첫번째 입력란은 2~3자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STEL2  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_stel2 INPUT.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = stel2
+    IMPORTING
+      htype     = gv_type.
+
+  IF stel2 IS INITIAL .
+    MESSAGE e000 WITH '두번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( stel2 ) &lt;&gt; 4 OR gv_type NE 'NUMC' .
+    MESSAGE e000 WITH '두번째 입력란은 4자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STEL3  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_stel3 INPUT.
+
+  DATA : lv_stortel TYPE zbbt_mm010-stortel.
+
+  CALL FUNCTION 'NUMERIC_CHECK'
+    EXPORTING
+      string_in = stel3
+    IMPORTING
+      htype     = gv_type.
+
+  IF stel3 IS INITIAL .
+    MESSAGE e000 WITH '첫번째 입력란에 값을 입력해주세요.'.
+  ELSEIF strlen( stel3 ) &lt;&gt; 4 OR gv_type NE 'NUMC'.
+    MESSAGE e000 WITH '세번째 입력란은 4자리의 숫자를 입력해주세요'.
+  ENDIF.
+
+  CLEAR gv_type.
+
+  IF gv_stel IS NOT INITIAL.
+    SELECT SINGLE stortel INTO lv_stortel
+      FROM zbbt_mm010
+      WHERE stortel = gv_stel.
+
+    IF sy-subrc EQ 0.
+      MESSAGE i000 WITH '동일한 전화번호가 존재합니다.'.
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  SET_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE set_data INPUT.
+
+  "창고 명 공백 제거
+  CONDENSE zbbt_mm010-stornm NO-GAPS.
+
+  "창고 주소 선행 공백 제거
+  SHIFT zbbt_mm010-storadd LEFT DELETING LEADING space.
+
+  " 선택 시 창고 종류 텍스트 출력
+  SELECT SINGLE stortytxt
+    INTO @DATA(lv_stxt)
+    FROM zbbt_storty
+    WHERE storty EQ @zbbt_mm010-storty.
+  zbbt_storty-stortytxt = lv_stxt.
+
+  " 선택 시 사원명 출력
+  SELECT SINGLE empnm
+    INTO emptxt
+    FROM zbbt_hr020
+    WHERE empno EQ zbbt_mm010-empno.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STORNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_storno INPUT.
+  DATA : lv_storno TYPE zbbt_mm010-storno.
+
+  IF  zbbt_mm010-storno IS NOT INITIAL .
+    SELECT SINGLE storno INTO lv_storno
+      FROM zbbt_mm010
+      WHERE storno = zbbt_mm010-storno.
+
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE e000 WITH '데이터베이스에 존재하지 않는 창고입니다.'.
+      CLEAR zbbt_mm010-storno.
+    ENDIF.
+  ELSE.
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  F4_EMPNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE f4_empno INPUT.
+<font color ="#0000FF">*  DATA: lt_return       LIKE TABLE OF ddshretval     WITH HEADER LINE.</font>
+
+  TYPES: BEGIN OF ty_empno,
+           empno  LIKE zbbt_hr020-empno,
+           empnm  LIKE zbbt_hr020-empnm,
+           deptno LIKE zbbt_hr020-deptno,
+           deptnm LIKE  zbbt_hr030-deptnm,
+         END OF ty_empno.
+  DATA : lt_empno TYPE TABLE OF ty_empno,
+         ls_empno TYPE ty_empno.
+
+  SELECT a~empno, empnm, a~deptno, deptnm
+   INTO TABLE @lt_empno
+   FROM zbbt_hr020 AS a INNER JOIN zbbt_hr030 AS b
+     ON a~deptno = b~deptno
+  WHERE a~deptno EQ '2310'.   "생산팀
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'EMPNO'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-repid                     "cprog
+      dynpnr       = sy-dynnr
+      dynprofield  = 'LT_EMPNO-EMPNO'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '직원/부서'            "팝업 제목"
+      value_org    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_empno           "select때 사용한 인터널 테이블
+      return_tab   = lt_return.         "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STORNM  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_stornm INPUT.
+  DATA : lv_stornm TYPE zbbt_mm010-stornm.
+
+  IF zbbt_mm010-stornm IS INITIAL.
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+    SELECT SINGLE stornm INTO lv_stornm
+        FROM zbbt_mm010
+        WHERE stornm = zbbt_mm010-stornm.
+
+    IF sy-subrc EQ 0.
+      MESSAGE e000 WITH '데이터베이스에 이미 존재하는 창고입니다.'.
+      CLEAR zbbt_mm010-stornm.
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STORTY  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_storty INPUT.
+
+  IF zbbt_mm010-storty IS INITIAL.
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ENDIF.
+
+  IF zbbt_mm010-stornm IS NOT INITIAL AND
+     zbbt_mm010-storty IS NOT INITIAL.
+
+    "선택된 창고 텍스트 가져오기
+    SELECT SINGLE stortytxt
+      INTO @DATA(lv_stotxt)
+      FROM zbbt_storty
+      WHERE storty EQ @zbbt_mm010-storty.
+
+    "창고명에 창고 타입 텍스트의 패턴이 있는지 찾음
+    FIND lv_stotxt IN zbbt_mm010-stornm.
+
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE e000 WITH '선택한 창고 타입과 창고 이름이 일치하지 않습니다.'.
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_EMPNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_empno INPUT.
+
+  DATA : lv_empno TYPE zbbt_hr020-empno.
+
+  IF zbbt_mm010-empno IS INITIAL.  "입력 유무 확인
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+    SELECT SINGLE empno INTO lv_empno
+      FROM zbbt_hr020
+      WHERE empno = zbbt_mm010-empno.
+
+    IF sy-subrc &lt;&gt; 0 .
+      MESSAGE e000 WITH '존재하지 않는 직원번호입니다.' .
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_STORADD  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_storadd INPUT.
+  IF zbbt_mm010-storadd IS INITIAL .
+    MESSAGE e000 WITH '값을 입력해주세요.'.
+  ELSE.
+    "창고 주소 선행 공백 제거
+    SHIFT zbbt_mm010-storadd LEFT DELETING LEADING space.
+  ENDIF.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

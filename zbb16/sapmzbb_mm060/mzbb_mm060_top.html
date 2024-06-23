@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM060_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM060_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM060_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          SAPMZBB_MM060_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM sapmzbb_mm060 MESSAGE-ID zbb_msg.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* SCREEN 요소</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+TABLES : sdyn_conn.
+DATA : ok_code  TYPE sy-ucomm,
+       ok_code2 TYPE sy-ucomm,
+       ok_code3 TYPE sy-ucomm.
+
+DATA : go_cont TYPE REF TO cl_gui_custom_container,
+       go_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : gt_field_cat TYPE lvc_t_fcat,
+       gs_field_cat TYPE lvc_s_fcat.
+
+DATA : gt_sorting TYPE lvc_t_sort,
+       gs_sorting TYPE lvc_s_sort.
+
+DATA : gs_layout TYPE lvc_s_layo.
+
+DATA : gs_row  TYPE lvc_s_row,
+       gt_rows TYPE lvc_t_row.
+
+DATA : gt_exclude_func TYPE ui_functions.
+
+DATA : gv_input.
+
+DATA : pa_file LIKE rlgrap-filename VALUE 'C:\'.
+
+DATA : vreg1 TYPE c LENGTH 3,
+       vreg2 TYPE c LENGTH 2,
+       vreg3 TYPE c LENGTH 5.
+
+DATA : vtel1 TYPE c LENGTH 3,
+       vtel2 TYPE c LENGTH 4,
+       vtel3 TYPE c LENGTH 4.
+
+DATA : cursorfield TYPE string.
+
+DATA : gv_mark TYPE string.
+
+DATA : banktype TYPE c LENGTH 35.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ABAP 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+TABLES : zbbt_mm030.   "거래처 마스터
+
+TYPES : BEGIN OF zty_line.
+          include structure <a href ="zbbt_mm030/dictionary-zbbt_mm030.html">zbbt_mm030</a>.
+TYPES :   light     TYPE c LENGTH 1,    "신호등
+          color     TYPE c LENGTH 4,    "line color
+          banknmtxt TYPE dd07t-ddtext,   "은행명
+        END OF zty_line.
+
+DATA : gs_mm030 TYPE zty_line,
+       gt_mm030 TYPE TABLE OF zty_line.
+
+DATA : gt_data TYPE TABLE OF zbbt_mm030,
+       gs_data TYPE zbbt_mm030.
+
+DATA : gt_del TYPE TABLE OF zty_line,
+       gs_del TYPE zbbt_mm030.
+
+CLASS : lcl_event_handler DEFINITION DEFERRED.
+DATA : go_handler TYPE REF TO LCL_event_handler. "참조변수
+
+
+DATA : gs_line TYPE zbbt_mm030,
+       gt_line TYPE TABLE OF zbbt_mm030.
+
+DATA : gv_ucomm TYPE sy-ucomm.
+
+<font color ="#0000FF">*DATA : gv_banknmtxt      TYPE dd07t-ddtext.   "은행명</font>
+
+DATA : gv_vregno TYPE zbbt_mm030-vregno.   "사업자등록번호
+DATA : gv_vtel TYPE zbbt_mm030-ventel.     " 거래처 전화번호
+
+DATA: gv_type(4) TYPE c.   "입력 필드 타입 점검용
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* Excel 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*- OLE object</font>
+DATA: go_application TYPE ole2_object,
+      go_books       TYPE ole2_object,
+      go_wbook       TYPE ole2_object,
+      go_book        TYPE ole2_object,
+      go_sheets      TYPE ole2_object,
+      go_sheet       TYPE ole2_object,
+      go_cells       TYPE ole2_object,
+      go_cell        TYPE ole2_object,
+      go_range       TYPE ole2_object,
+      go_font        TYPE ole2_object,
+      go_row         TYPE ole2_object,
+      gv_path        TYPE string,
+      gv_directory   TYPE string,
+      gv_num         TYPE i.
+
+DATA : BEGIN OF gs_excel,
+         vennm  TYPE zbbt_mm030-vennm,
+         banknm TYPE zbbt_mm030-banknm,
+         deponm TYPE zbbt_mm030-deponm,
+         baccno TYPE zbbt_mm030-baccno,
+         vregno TYPE zbbt_mm030-vregno,
+         vpicnm TYPE zbbt_mm030-vpicnm,
+         venadd TYPE zbbt_mm030-venadd,
+         ventel TYPE zbbt_mm030-ventel,
+       END OF gs_excel.
+
+DATA : gt_excel LIKE TABLE OF gs_excel.
+
+FIELD-SYMBOLS : &lt;fs&gt; TYPE any.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

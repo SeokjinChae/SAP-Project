@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI040</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI040</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-FI] 전표조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_FI040</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_FI040</font>
+<font color ="#0000FF">*& DESCRIPTION : 전표조회 및 역분개</font>
+<font color ="#0000FF">*& MODULE      : FI</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-19 (이은지)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.16</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE           DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.16      신규 개발</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.17      주요기능 개발 완료</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.29      강사님 피드백 반영 완료</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zbb_fi040.
+
+include <a href ="zbb_fi040_top.html">zbb_fi040_top</a>.
+include <a href ="zbb_fi040_c01.html">zbb_fi040_c01</a>.
+
+include <a href ="zbb_fi040_o01.html">zbb_fi040_o01</a>. " PBO-Modules
+include <a href ="zbb_fi040_i01.html">zbb_fi040_i01</a>. " PAI-Modules
+include <a href ="zbb_fi040_f01.html">zbb_fi040_f01</a>. " FORM-Routines
+
+<font color ="#0000FF">*--------------------------------------------</font>
+<font color ="#0000FF">* event</font>
+<font color ="#0000FF">*--------------------------------------------</font>
+
+INITIALIZATION.
+
+GET PARAMETER ID 'P_ACCNO' FIELD so_acc-low.
+IF so_acc-low IS NOT INITIAL.
+ MOVE: 'I'  TO so_acc-sign,
+       'EQ' TO so_acc-option.
+ APPEND so_acc.
+ SET PARAMETER ID 'P_ACCNO' FIELD space.
+ ENDIF.
+
+pa_com = 2000.
+pa_fiy = sy-datum(4).
+
+ MOVE : 'I'  TO so_pst-sign,
+        'BT' TO so_pst-option,
+        sy-datum TO so_pst-high.
+
+  APPEND so_pst.
+
+
+AT SELECTION-SCREEN OUTPUT. "pbo
+  PERFORM modify_screen.
+
+START-OF-SELECTION. "실행 시
+
+  PERFORM get_data. "데이터베이스에서 조회조건을 가준으로 데이터를 가져온다.
+  PERFORM make_data. "가져온 데이터들을 가공 및 처리
+  PERFORM display_data.
+
+END-OF-SELECTION.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [SAP ssarum-FI] 전표조회</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 001 조회조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_COM         회사코드</font>
+<font color ="#0000FF">* PA_FIY         회계연도</font>
+<font color ="#0000FF">* SO_ACC         전표번호</font>
+<font color ="#0000FF">* SO_ACCTP         전표유형</font>
+<font color ="#0000FF">* SO_PST         전기일자</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

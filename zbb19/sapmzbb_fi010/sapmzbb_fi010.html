@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZBB_FI010</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZBB_FI010</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-FI] G/L 계정 마스터 관리</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      SAPMZBB_FI010</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : SAPMZBB_FI010</font>
+<font color ="#0000FF">*& DESCRIPTION : G/L계정 마스터 관리</font>
+<font color ="#0000FF">*& MODULE      : FI</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-19 (이은지)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.24</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER      DATE            DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.24      신규 개발</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.26      주요기능 개발 완료</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.30      추가기능 개발 완료 (저장시에만 계정코드 자동채번)</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+ include <a href ="mzbb_fi010_top.html">mzbb_fi010_top</a>.  " Global Data
+ include <a href ="mzbb_fi010_c01.html">mzbb_fi010_c01</a>.  " Class
+ include <a href ="mzbb_fi010_o01.html">mzbb_fi010_o01</a>.  " PBO-Modules
+ include <a href ="mzbb_fi010_i01.html">mzbb_fi010_i01</a>.  " PAI-Modules
+ include <a href ="mzbb_fi010_f01.html">mzbb_fi010_f01</a>.  " FORM-Routines
+ include <a href ="mzbb_fi010_e01.html">mzbb_fi010_e01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [SAP ssarum-FI] G/L 계정 마스터 관리</font>
+<font color ="#0000FF">* TITLE_0110 --&gt; G/L계정 정보 생성</font>
+<font color ="#0000FF">* TITLE_0120 --&gt; G/L계정 정보 수정</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   중복된 계정명이 존재합니다.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*000   &</font>
+<font color ="#0000FF">*002   데이터 생성에 실패했습니다.</font>
+<font color ="#0000FF">*003   선택된 행이 없습니다. 항목을 선택하세요.</font>
+<font color ="#0000FF">*004   데이터 저장에 성공했습니다.</font>
+<font color ="#0000FF">*005   데이터 저장을 취소했습니다.</font>
+<font color ="#0000FF">*006   수정할 행을 선택하세요.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*025   데이터 삭제를 취소했습니다.</font>
+<font color ="#0000FF">*026   수정할 하나의 행을 선택하세요.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*031   데이터 수정을 실패했습니다.</font>
+<font color ="#0000FF">*034   회사코드를 입력해주세요.</font>
+<font color ="#0000FF">*087   필수값을 입력해주세요.</font>
+<font color ="#0000FF">*088   이전 작업이 완료되지 않았습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD070_S01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD070_S01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD070_S01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD070_S01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-t01.
+  SELECT-OPTIONS: SO_SPL FOR ZBBT_SD070-SPLANNO,
+                  SO_SPD FOR ZBBT_SD070-SPLANDATE,
+                  SO_SPY FOR ZBBT_SD070-SPLANY,
+                  SO_SPM FOR ZBBT_SD070-SPLANM.
+  PARAMETERS: PA_EMPNO TYPE ZBBT_SD070-EMPNO.
+  SELECTION-SCREEN SKIP 1.
+  SELECTION-SCREEN BEGIN OF LINE.
+
+    PARAMETERS pa_plx RADIOBUTTON GROUP gr1 USER-COMMAND ucom1. " 미실행
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_plx.
+    PARAMETERS pa_plo RADIOBUTTON GROUP gr1.                    " 실행 완료
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_plo.
+    PARAMETERS pa_all RADIOBUTTON GROUP gr1 DEFAULT 'X'.        " 전체
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_all.
+
+
+  SELECTION-SCREEN END OF LINE.
+
+<font color ="#0000FF">*  SELECTION-SCREEN SKIP 1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  SELECTION-SCREEN BEGIN OF LINE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    PARAMETERS pa_sub RADIOBUTTON GROUP gr2 USER-COMMAND ucom1. " 구독</font>
+<font color ="#0000FF">*    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_sub.</font>
+<font color ="#0000FF">*    PARAMETERS pa_nor RADIOBUTTON GROUP gr2.                    " 일반</font>
+<font color ="#0000FF">*    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_nor.</font>
+<font color ="#0000FF">*    PARAMETERS pa_both RADIOBUTTON GROUP gr2 DEFAULT 'X'.       " 전체</font>
+<font color ="#0000FF">*    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_both.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  SELECTION-SCREEN END OF LINE.</font>
+
+
+SELECTION-SCREEN END OF BLOCK b1.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

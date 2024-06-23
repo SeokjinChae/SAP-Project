@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM080_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM080_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_MM080_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_MM080_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS LCL_EVENT_HANDLER DEFINITION.
+
+  PUBLIC SECTION.
+
+    METHODS HANDLE_TOOLBAR
+      FOR EVENT TOOLBAR OF CL_GUI_ALV_GRID
+      IMPORTING E_OBJECT.
+
+    METHODS HANDLE_USER_COMMAND
+      FOR EVENT USER_COMMAND OF CL_GUI_ALV_GRID
+      IMPORTING E_UCOMM.
+
+ENDCLASS.
+CLASS LCL_EVENT_HANDLER IMPLEMENTATION.
+
+  METHOD HANDLE_TOOLBAR.
+    PERFORM TOOLBAR USING E_OBJECT.
+  ENDMETHOD.
+
+  METHOD HANDLE_USER_COMMAND.
+    PERFORM USER_COMMAND USING E_UCOMM.
+  ENDMETHOD.
+
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

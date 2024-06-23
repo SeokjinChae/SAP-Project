@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_BAT020_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_BAT020_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_BAT020_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">***INCLUDE ZBB_BAT020_F01.</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SELECT_ITEMS</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SELECT_ITEMS .
+
+  CLEAR GT_ITEM. " 어제자 주문 헤더의 주문번호에 해당하는 모든 주문 아이템들을 GT_ITEM에 넣어주기.
+  LOOP AT GT_SD040 INTO GS_SD040.
+
+    CLEAR GT_ITEM_TEMP.
+    SELECT ORDERNO MATNO QUANTITY INTO CORRESPONDING FIELDS OF TABLE GT_ITEM_TEMP
+      FROM ZBBT_SD050
+      WHERE ORDERNO = GS_SD040-ORDERNO.
+
+    APPEND LINES OF GT_ITEM_TEMP TO GT_ITEM.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form INSERT_PPLAN_HEADER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM INSERT_PPLAN_HEADER .
+<font color ="#0000FF">* 생산계획 헤더에 데이터 넣어주기</font>
+<font color ="#0000FF">* 어제자 주문요청 들어온 일반주문건들을 생산계획 헤더에 한 건 넣어주기</font>
+
+  LV_PPLANDATE = SY-DATUM.
+
+  CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+    EXPORTING
+      DATE      = LV_PPLANDATE
+      DAYS      = '01' " 생산계획일을 계획생성일자 +1일로 한다는 가정
+      MONTHS    = '00'
+      SIGNUM    = '+'
+      YEARS     = '00'
+    IMPORTING
+      CALC_DATE = LV_PPLANDATE.
+
+  CLEAR GT_PP020.
+  CALL FUNCTION 'NUMBER_GET_NEXT' " LV_NR에 넘버레인지 받아 오기
+    EXPORTING
+      NR_RANGE_NR = '01'
+      OBJECT      = 'ZBB_PPLANN'
+<font color ="#0000FF">*     QUANTITY    = '1'</font>
+<font color ="#0000FF">*     SUBOBJECT   = ' '</font>
+<font color ="#0000FF">*     TOYEAR      = '0000'</font>
+<font color ="#0000FF">*     IGNORE_BUFFER           = ' '</font>
+    IMPORTING
+      NUMBER      = LV_NR_TEMP
+<font color ="#0000FF">*     QUANTITY    =</font>
+<font color ="#0000FF">*     RETURNCODE  =</font>
+    EXCEPTIONS
+      OTHERS      = 1.
+  IF SY-SUBRC &lt;&gt; 0.
+  ENDIF.
+
+  CONCATENATE 'PLN' SY-DATUM+2(6) LV_NR_TEMP INTO LV_NR. " 넘버레인지에 PREFIX 붙여 주기
+  IF SY-BATCH EQ 'X'.
+    CONCATENATE '[일반 - 배치잡] ' LV_PPLANDATE '에 생산해야 하는 ' LV_YESTERDAY '일자 일반주문건에 대한 생산계획' INTO LV_DESCRIPTION.
+  ELSE.
+    CONCATENATE '[일반] ' LV_PPLANDATE '에 생산해야 하는 ' LV_YESTERDAY '일자 일반주문건에 대한 생산계획' INTO LV_DESCRIPTION.
+  ENDIF.
+
+  " 생산계획 헤더 테이블 WA에 값 넣어주기.
+  GS_PP020-PPLANNO =  LV_NR.
+  GS_PP020-PPSURIPDATE = SY-DATUM(8).
+  GS_PP020-PPLANDATE = LV_PPLANDATE.
+  GS_PP020-PPLANTXT = LV_DESCRIPTION.
+  GS_PP020-PPLANYN = '0'.
+  GS_PP020-PLANTNO = 'BYP'.
+  GS_PP020-EMPNO = 'HR240004'.
+  GS_PP020-CREATE_DT = SY-DATUM(8).
+  GS_PP020-CREATE_TM = SY-UZEIT.
+  GS_PP020-CUSER = SY-UNAME.
+
+
+
+  INSERT ZBBT_PP020 FROM GS_PP020.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form INSERT_PPLAN_ITEM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM INSERT_PPLAN_ITEM .
+
+  CLEAR GT_PP030.
+  DATA : LV_TEMP TYPE I VALUE 0.
+  LOOP AT GT_MM100 INTO GS_MM100.
+    IF GS_MM100-QUANTITY_LACK &lt; 0.
+      LV_TEMP = LV_TEMP + 1.
+      GS_PP030-ITEMNO = LV_TEMP.
+      GS_PP030-PPLANNO = LV_NR.
+      GS_PP030-MATNO = GS_MM100-MATNO.
+      GS_PP030-QUANTITY = GS_MM100-QUANTITY_LACK * -1.
+      GS_PP030-UNIT = 'EA'.
+      GS_PP030-CREATE_DT = SY-DATUM.
+      GS_PP030-CREATE_TM = SY-UZEIT.
+      GS_PP030-CUSER = SY-UNAME.
+
+      APPEND GS_PP030 TO GT_PP030.
+    ENDIF.
+  ENDLOOP.
+
+  SORT GT_ITEM_TEMP BY MATNO.
+
+  INSERT ZBBT_PP030 FROM TABLE GT_PP030.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CHANGE_ORDSTAT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CHANGE_ORDSTAT .
+  LOOP AT GT_SD040 INTO GS_SD040. " ZBBT_SD040의 주문상태 1로 바꿔주기
+
+    GS_SD040-ORDSTAT = '1'.
+
+<font color ="#0000FF">*    MODIFY ZBBT_SD040 FROM GS_SD040.</font>
+
+  ENDLOOP.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

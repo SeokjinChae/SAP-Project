@@ -1,0 +1,212 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD030_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD030_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_SD030_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_SD030_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+
+    WHEN 'CBTN'.          " 생성
+      IF ZBBT_SD070-SPLANY LT SY-DATUM+0(4) AND ZBBT_SD070-SPLANY NE 0.
+        MESSAGE S076 DISPLAY LIKE 'E' WITH SY-DATUM+0(4).
+        CLEAR ZBBT_SD070-SPLANY.
+
+      ELSEIF ZBBT_SD070-SPLANM = 0 OR ZBBT_SD070-SPLANY = 0
+             OR ZBBT_SD070-SPLANDATE IS INITIAL OR ZBBT_SD070-EMPNO IS INITIAL.
+        MESSAGE S068 DISPLAY LIKE 'E'.
+        CLEAR: ZBBT_SD070-SPLANM.
+      ELSEIF ZBBT_SD080-QUANTITY = 0 AND ZBBT_SD070-SPLANNO IS NOT INITIAL.
+        MESSAGE S128 WITH '수량' DISPLAY LIKE 'E'.
+      ELSE.
+        PERFORM CREATE_ANSWER.
+      ENDIF.
+
+    WHEN 'REFBTN'.        " 초기화
+      CLEAR: ZBBT_SD070, ZBBT_SD080, GT_SD070, GT_SD080.
+
+    WHEN 'VIEW'.          " 판매계획 조회
+      PERFORM VIEW_ANSWER.
+      CLEAR: GS_SD070, GT_SD070, GS_SD080, GT_SD080.
+
+    WHEN 'FIX'.           " 판매계획 수정
+      CLEAR: GS_SD070, GT_SD070, GS_SD080, GT_SD080.
+      CALL SCREEN 200.
+
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0200  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0200 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'FC1'.
+      CLEAR: GT_SD080.
+      IF GV_SPLANM_L IS NOT INITIAL OR GV_SPLANM_H IS NOT INITIAL.
+        IF GV_SPLANM_L LT 1 OR GV_SPLANM_H GT 12.
+          MESSAGE S022 DISPLAY LIKE 'E'. " 1~12 사이의 유효한 월을 입력해주세요.
+          CLEAR GT_SD070.
+          PERFORM REFRESH_GRID3.
+          PERFORM REFRESH_GRID4.
+        ELSEIF GV_SPLANM_L GT GV_SPLANM_H OR GV_SPLANY_L GT GV_SPLANY_H.
+          MESSAGE S111 DISPLAY LIKE 'E'. " 올바른 연도 및 월을 입력해주세요.
+          CLEAR: GV_SPLANM_L, GV_SPLANM_H, GT_SD070, GV_SPLANY_L, GV_SPLANY_H.
+          PERFORM REFRESH_GRID3.
+          PERFORM REFRESH_GRID4.
+        ELSE.
+          PERFORM SET_SEARCH_CONDITION.
+        ENDIF.
+      ELSE. " 계획월이 둘 다 INITIAL일 경우
+        IF GV_SPLANY_L GT GV_SPLANY_H.
+          MESSAGE S111 DISPLAY LIKE 'E'. " 올바른 연도 및 월을 입력해주세요.
+          CLEAR: GT_SD070, GV_SPLANY_L, GV_SPLANY_H.
+          PERFORM REFRESH_GRID3.
+          PERFORM REFRESH_GRID4.
+        ELSE.
+          PERFORM SET_SEARCH_CONDITION.
+        ENDIF.
+<font color ="#0000FF">*      PERFORM GET_DATA_0200.</font>
+<font color ="#0000FF">*      CLEAR GV_SPLANNO.</font>
+      ENDIF.
+      WHEN 'VIEW'.
+        PERFORM VIEW_ANSWER.
+      WHEN 'CREATE'.
+        CLEAR: GT_SD070, GT_SD080, GS_SD070, GS_SD080, GT_DEL, GT_DEL2.
+        PERFORM CLEAR_SEARCH.
+        PERFORM CLEAR_INPUT_0100.
+        PERFORM INIT_DATA.
+        CALL SCREEN 100.
+      WHEN 'REFRESH'.
+<font color ="#0000FF">*     ALV에서 저장되지 않은 데이터가 없다면</font>
+        IF ( GS_SD070-LIGHT = 3 AND GS_SD080-LIGHT = 3 ) OR ( GS_SD080 IS INITIAL ).
+          CLEAR: GT_SD080, GT_SD070.
+          PERFORM REFRESH_GRID3.
+          PERFORM REFRESH_GRID4.
+          PERFORM CLEAR_SEARCH.
+          MESSAGE S066.
+        ELSE. " 저장되지 않은 데이터가 있다면 확인 질문하기
+          PERFORM REFRESH_ANSWER_0200.
+        ENDIF.
+    ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0210  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0210 INPUT.
+  CASE OK_CODE3.
+    WHEN 'FCODE3'.        " 수정
+      PERFORM UPDATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.        " 취소
+      MESSAGE S010.       " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0220  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0220 INPUT.
+  CASE OK_CODE4.
+    WHEN 'FCODE5'.        " 수정
+      PERFORM UPDATE_DATA_ITEM.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'.        " 취소
+      MESSAGE S010.       " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0230  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0230 INPUT.
+  CASE OK_CODE5.
+    WHEN 'FCODE7'.
+      PERFORM CREATE_DATA_ITEM.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE8'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_MATNO_F4 INPUT.
+
+  DATA: LT_RETURN LIKE TABLE OF DDSHRETVAL WITH HEADER LINE.
+
+  TYPES: BEGIN OF TY_MATNO,
+           MATNO   LIKE ZBBT_SD080-MATNO,
+           MATNM   LIKE ZBBT_MM020-MATNM,
+           MATTYPE LIKE ZBBT_MM020-MATTYPE,
+         END OF TY_MATNO.
+  DATA : LT_MATNO TYPE TABLE OF TY_MATNO,
+         LS_MATNO TYPE TY_MATNO.
+
+  SELECT DISTINCT A~MATNO, B~MATNM, B~MATTYPE
+   INTO TABLE @LT_MATNO
+   FROM ZBBT_SD080 AS A
+    INNER JOIN ZBBT_MM020 AS B
+    ON  A~MATNO = B~MATNO
+  WHERE B~MATTYPE = 'FG'
+   ORDER BY A~MATNO.
+
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        RETFIELD     = 'MATNO'           "선택화면에서 선택한 필드명
+        DYNPPROG     = SY-CPROG
+        DYNPNR       = SY-DYNNR
+        DYNPROFIELD  = 'LT_MATNO-MATNO'   "선택한 필드를 받을 화면상의 개체 이름
+        WINDOW_TITLE = '완제품'            "팝업 제목"
+        VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+      TABLES
+        VALUE_TAB    = LT_MATNO            "select때 사용한 인터널 테입블
+        RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

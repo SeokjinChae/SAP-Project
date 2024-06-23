@@ -1,0 +1,691 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD070_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD070_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD070_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form INIT_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM INIT_DATA .
+
+  SO_SPD-SIGN = 'I'.
+  SO_SPD-OPTION = 'BT'.
+  SO_SPD-LOW = SY-DATUM(6) && '01'.
+  SO_SPD-HIGH = SY-DATUM.
+
+  APPEND SO_SPD.
+
+  SO_SPY-SIGN = 'I'.
+  SO_SPY-OPTION = 'BT'.
+<font color ="#0000FF">*  SO_SPY-low = sy-datum(6) && '01'.</font>
+  SO_SPY-HIGH = SY-DATUM(4).
+
+  APPEND SO_SPY.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_ALV0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_ALV0 .
+  IF GO_CONT_DOCK IS INITIAL.
+
+    CREATE OBJECT GO_CONT_DOCK
+      EXPORTING
+        REPID     = SY-REPID
+        DYNNR     = SY-DYNNR
+        SIDE      = CL_GUI_DOCKING_CONTAINER=&gt;DOCK_AT_TOP
+        EXTENSION = 1000
+      EXCEPTIONS
+        OTHERS    = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.
+
+    CREATE OBJECT GO_CONT_SPLIT
+      EXPORTING
+        PARENT  = GO_CONT_DOCK
+        ROWS    = 2
+        COLUMNS = 1
+      EXCEPTIONS
+        OTHERS  = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.
+<font color ="#0000FF">* 여기서부턴 각각 !</font>
+    CALL METHOD GO_CONT_SPLIT-&gt;GET_CONTAINER
+      EXPORTING
+        ROW       = 1               " Row
+        COLUMN    = 1               " Column
+      RECEIVING
+        CONTAINER = GO_CONT_TOP.
+
+    CALL METHOD GO_CONT_SPLIT-&gt;GET_CONTAINER
+      EXPORTING
+        ROW       = 2               " Row
+        COLUMN    = 1               " Column
+      RECEIVING
+        CONTAINER = GO_CONT_BOT.
+
+    CALL METHOD GO_CONT_SPLIT-&gt;SET_ROW_HEIGHT
+      EXPORTING
+        ID     = 1                " Row ID
+        HEIGHT = 50               " Height
+      EXCEPTIONS
+        OTHERS = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.
+
+    CALL METHOD GO_CONT_SPLIT-&gt;SET_ROW_HEIGHT
+      EXPORTING
+        ID     = 2                " Row ID
+        HEIGHT = 50               " Height
+      EXCEPTIONS
+        OTHERS = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.                " Container
+
+<font color ="#0000FF">* 상단 그리드 객체 1개 생성</font>
+    CREATE OBJECT GO_GRID0
+      EXPORTING
+        I_PARENT = GO_CONT_TOP.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.
+
+<font color ="#0000FF">* 쇼핑몰 주문 / 구독 주문 경우에 따른 하단 그리드 객체 1개씩 총 2개 생성</font>
+    CREATE OBJECT GO_GRID1
+      EXPORTING
+        I_PARENT = GO_CONT_BOT.
+    IF SY-SUBRC &lt;&gt; 0.
+    ENDIF.
+
+<font color ="#0000FF">*    CREATE OBJECT GO_GRID2</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        I_PARENT = GO_CONT_BOT.</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+
+  ELSE.
+    CALL METHOD GO_GRID0-&gt;REFRESH_TABLE_DISPLAY
+      EXPORTING
+        I_SOFT_REFRESH = 'X'
+      EXCEPTIONS
+        FINISHED       = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE 'GO_GRID0 에러 발생' TYPE 'E'.
+    ENDIF.
+
+<font color ="#0000FF">*    GO_GRID0-&gt;REFRESH_TABLE_DISPLAY( ).</font>
+<font color ="#0000FF">*    GO_GRID1-&gt;REFRESH_TABLE_DISPLAY( ).</font>
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form REGISTER_EVENT_HANDLER0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM REGISTER_EVENT_HANDLER0 .
+<font color ="#0000FF">* 상단 그리드(GO_GRID0)에 대한 이벤트 핸들러 등록</font>
+  SET HANDLER LCL_EVENT_HANDLER=&gt;HANDLE_DOUBLE_CLICK FOR GO_GRID0.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_VARIANT0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_VARIANT0 .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT0 .
+<font color ="#0000FF">*  GS_LAYOUT0-SMALLTITLE = 'X'.</font>
+  GS_LAYOUT0-GRID_TITLE = '판매 계획 목록'.
+  GS_LAYOUT0-SEL_MODE = 'A'.
+  GS_LAYOUT0-ZEBRA = 'X'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_SORTING0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_SORTING0 .
+<font color ="#0000FF">*  GS_SORTING_CRITERION0-FIELDNAME = 'SPLANDATE'.</font>
+  GS_SORTING_CRITERION0-FIELDNAME = 'SPLANNO'.
+  GS_SORTING_CRITERION0-DOWN = 'X'.
+  APPEND GS_SORTING_CRITERION0 TO GT_SORTING_CRITERIA0.
+
+  CLEAR GS_SORTING_CRITERION0.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_CATALOG0 .
+  DATA : LT_FCAT TYPE KKBLO_T_FIELDCAT.
+  CALL FUNCTION 'K_KKB_FIELDCAT_MERGE'
+    EXPORTING
+      I_CALLBACK_PROGRAM = SY-REPID
+      I_TABNAME          = 'GS_DISPLAY0'
+      I_INCLNAME         = SY-REPID
+    CHANGING
+      CT_FIELDCAT        = LT_FCAT
+    EXCEPTIONS
+      OTHERS             = 1.
+  IF SY-SUBRC EQ 0.
+    CALL FUNCTION 'LVC_TRANSFER_FROM_KKBLO'
+      EXPORTING
+        IT_FIELDCAT_KKBLO = LT_FCAT
+      IMPORTING
+        ET_FIELDCAT_LVC   = GT_FCAT0
+      EXCEPTIONS
+        OTHERS            = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE '필드 카탈로그 오류.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+  LOOP AT GT_FCAT0 INTO GS_FCAT0.
+    CASE GS_FCAT0-FIELDNAME.
+      WHEN 'STATUS'.
+        GS_FCAT0-COLTEXT = '실행 여부'.
+        GS_FCAT0-OUTPUTLEN = 6.
+        GS_FCAT0-ICON = 'X'.
+      WHEN 'SPLANDATE'.
+        GS_FCAT0-OUTPUTLEN = 8.
+      WHEN 'SPLANY'.
+        GS_FCAT0-OUTPUTLEN = 6.
+      WHEN 'SPLANM'.
+        GS_FCAT0-OUTPUTLEN = 4.
+      WHEN 'EMPNO'.
+        GS_FCAT0-OUTPUTLEN = 8.
+      WHEN 'SPLANTXT'.
+        GS_FCAT0-OUTPUTLEN = 30.
+      WHEN 'SPLANYN'.
+        GS_FCAT0-OUTPUTLEN = 10.
+        GS_FCAT0-NO_OUT = 'X'.
+    ENDCASE.
+
+    MODIFY GT_FCAT0 FROM GS_FCAT0.
+
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CALL_DISPLAY0 .
+  CALL METHOD GO_GRID0-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'GS_DISPLAY0'
+      IS_LAYOUT        = GS_LAYOUT0           " Layout
+<font color ="#0000FF">*     IS_PRINT         =                      " Print Control</font>
+    CHANGING
+      IT_OUTTAB        = GT_DISPLAY0          " Output Table
+      IT_FIELDCATALOG  = GT_FCAT0             " Field Catalog
+      IT_SORT          = GT_SORTING_CRITERIA0 " Sort Criteria
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'FORM CALL_DISPLAY0 오류 발생.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM GET_DATA0 .
+
+  CLEAR GT_DISPLAY0.
+
+  DATA LV_LIN TYPE I.
+
+  IF PA_EMPNO IS NOT INITIAL.
+    CASE 'X'.
+      WHEN PA_PLX.  " 실행 전
+        SELECT *
+        INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM
+          AND EMPNO  = PA_EMPNO
+          AND SPLANYN EQ 0.
+      WHEN PA_PLO.  " 실행 완료
+        SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM
+          AND EMPNO  = PA_EMPNO
+          AND SPLANYN EQ 1.
+      WHEN PA_ALL.  " 전체
+        SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM
+          AND EMPNO  = PA_EMPNO.
+    ENDCASE.
+  ELSE. " PA_EMPNO IS INITIAL
+    CASE 'X'.
+      WHEN PA_PLX.  " 실행 전
+        SELECT *
+        INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM
+          AND SPLANYN EQ 0.
+      WHEN PA_PLO.  " 실행 완료
+        SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM
+          AND SPLANYN EQ 1.
+      WHEN PA_ALL.  " 전체
+        SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY0
+        FROM ZBBT_SD070
+        WHERE SPLANNO IN SO_SPL
+          AND SPLANDATE IN SO_SPD
+          AND SPLANY IN SO_SPY
+          AND SPLANM IN SO_SPM.
+    ENDCASE.
+  ENDIF.
+
+<font color ="#0000FF">*    MODIFY GT_DISPLAY0 FROM GS_DISPLAY0 TRANSPORTING status.</font>
+<font color ="#0000FF">*  ENDLOOP.</font>
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE S029 DISPLAY LIKE 'E'.  " 데이터가 존재하지 않습니다.
+    EXIT.
+  ELSE.
+    DESCRIBE TABLE GT_DISPLAY0 LINES LV_LIN.
+
+    IF GT_DISPLAY0 IS NOT INITIAL.
+      MESSAGE S009 WITH LV_LIN.
+    ELSE.
+      MESSAGE S029 DISPLAY LIKE 'E'. " 데이터가 존재하지 않습니다.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form MAKE_DATA0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM MAKE_DATA0 .
+  DATA : LV_LINE TYPE I.
+  DESCRIBE TABLE GT_DISPLAY0 LINES LV_LINE.
+
+  " REFRESH를 위하여 CALL SCREEN 은 서브루틴 밖으로 뺌.
+
+  LOOP AT GT_DISPLAY0 INTO GS_DISPLAY0.
+
+    IF GS_DISPLAY0-SPLANYN = '1'.     " 실행 완료
+      GS_DISPLAY0-STATUS = ICON_LED_GREEN.
+    ELSEIF GS_DISPLAY0-SPLANYN = '0'. " 미실행
+      GS_DISPLAY0-STATUS = ICON_LED_YELLOW.
+    ENDIF.
+
+
+
+    MODIFY GT_DISPLAY0 FROM GS_DISPLAY0 TRANSPORTING STATUS.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DISPLAY_DATA0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM DISPLAY_DATA0 .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DOUBLE_CLICK</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN</font>
+<font color ="#0000FF">*&      --&gt; E_ROW</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&      --&gt; SENDER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM DOUBLE_CLICK USING P_COLUMN
+                            P_ROW
+                            PS_ROW_NO
+                            P_SENDER.
+
+  READ TABLE GT_DISPLAY0 INTO GS_DISPLAY0 INDEX P_ROW.
+
+<font color ="#0000FF">* 상단 그리드의 한 행을 더블클릭 시 하단 그리드에 주문 상세 출력되도록.</font>
+  CLEAR GT_DISPLAY1.
+  PERFORM GET_DATA1.
+  PERFORM MAKE_DATA1.
+  PERFORM REGISTER_EVENT_HANDLER1.
+<font color ="#0000FF">*  PERFORM SET_LAYOUT1.</font>
+  PERFORM SET_SORTING1.
+<font color ="#0000FF">*  PERFORM SET_CATALOG1.</font>
+  PERFORM CALL_DISPLAY1.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM GET_DATA1 .
+
+  DATA LV_LIN TYPE I.
+<font color ="#0000FF">* 더블클랙한 행을 받아 와서 GS_DISPLAY0에 넣어 둔 상태</font>
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_DISPLAY1
+    FROM ZBBT_SD080
+    WHERE SPLANNO = GS_DISPLAY0-SPLANNO.
+
+<font color ="#0000FF">*  SELECT SINGLE * INTO CORRESPONDING FIELDS OF GS_SD070</font>
+<font color ="#0000FF">*    FROM ZBBT_SD070</font>
+<font color ="#0000FF">*   WHERE SPLANNO = GS_DISPLAY0-SPLANNO.</font>
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE S029 DISPLAY LIKE 'E'.
+  ELSE.
+    DESCRIBE TABLE GT_DISPLAY1 LINES LV_LIN.
+
+    IF GT_DISPLAY1 IS NOT INITIAL.
+      MESSAGE S009 WITH LV_LIN.
+    ELSE.
+      MESSAGE S029 DISPLAY LIKE 'E'.
+<font color ="#0000FF">*      MESSAGE E029.</font>
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form MAKE_DATA1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM MAKE_DATA1 .
+
+
+  " REFRESH를 위하여 CALL SCREEN 은 서브루틴 밖으로 뺌.
+
+  LOOP AT GT_DISPLAY1 INTO GS_DISPLAY1.
+
+    SELECT SINGLE *
+          FROM ZBBT_MM020
+          INTO GS_MM020
+          WHERE MATNO = GS_DISPLAY1-MATNO.
+
+    GS_DISPLAY1-MATNM = GS_MM020-MATNM.
+
+    MODIFY GT_DISPLAY1 FROM GS_DISPLAY1 TRANSPORTING MATNM.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form REGISTER_EVENT_HANDLER1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM REGISTER_EVENT_HANDLER1 .
+<font color ="#0000FF">* 하단 그리드(GO_GRID1)에 대한 이벤트 핸들러 등록</font>
+<font color ="#0000FF">*  SET HANDLER LCL_EVENT_HANDLER=&gt;HANDLE_TOOLBAR FOR GO_GRID1.</font>
+<font color ="#0000FF">*  SET HANDLER LCL_EVENT_HANDLER=&gt;HANDLE_USER_COMMAND FOR GO_GRID1.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT1 .
+<font color ="#0000FF">*  GS_LAYOUT1-SMALLTITLE = 'X'.</font>
+  GS_LAYOUT1-GRID_TITLE = '판매 계획 상세 내역'.
+  GS_LAYOUT1-SEL_MODE = 'A'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_CATALOG1 .
+  DATA : LT_FCAT TYPE KKBLO_T_FIELDCAT.
+  CALL FUNCTION 'K_KKB_FIELDCAT_MERGE'
+    EXPORTING
+      I_CALLBACK_PROGRAM = SY-REPID
+      I_TABNAME          = 'GS_DISPLAY1'
+      I_INCLNAME         = SY-REPID
+    CHANGING
+      CT_FIELDCAT        = LT_FCAT
+    EXCEPTIONS
+      OTHERS             = 1.
+  IF SY-SUBRC EQ 0.
+    CALL FUNCTION 'LVC_TRANSFER_FROM_KKBLO'
+      EXPORTING
+        IT_FIELDCAT_KKBLO = LT_FCAT
+      IMPORTING
+        ET_FIELDCAT_LVC   = GT_FCAT1
+      EXCEPTIONS
+        OTHERS            = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE 'FORM SET_CATALOG1 오류.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+
+
+  LOOP AT GT_FCAT1 INTO GS_FCAT1.
+    CASE GS_FCAT1-FIELDNAME.
+      WHEN 'MATNM'.
+        GS_FCAT1-OUTPUTLEN = 16.
+      WHEN 'QUANTITY'.
+        GS_FCAT1-OUTPUTLEN = 4.
+    ENDCASE.
+
+    MODIFY GT_FCAT1 FROM GS_FCAT1.
+
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CALL_DISPLAY1 .
+
+  CALL METHOD GO_GRID1-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'GS_DISPLAY1'
+<font color ="#0000FF">*     IS_VARIANT       =                  " Layout</font>
+<font color ="#0000FF">*     I_SAVE           =                  " Save Layout</font>
+<font color ="#0000FF">*     I_DEFAULT        = 'X'              " Default Display Variant</font>
+      IS_LAYOUT        = GS_LAYOUT1       " Layout
+<font color ="#0000FF">*     IS_PRINT         =                  " Print Control</font>
+    CHANGING
+      IT_OUTTAB        = GT_DISPLAY1          " Output Table
+      IT_FIELDCATALOG  = GT_FCAT1             " Field Catalog
+      IT_SORT          = GT_SORTING_CRITERIA1 " Sort Criteria
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'CALL_DISPLAY1 오류 발생' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_SORTING1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_SORTING1 .
+
+  GS_SORTING_CRITERION1-FIELDNAME = 'MATNO'.
+  APPEND GS_SORTING_CRITERION1 TO GT_SORTING_CRITERIA1.
+  CLEAR GS_SORTING_CRITERION1.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_ANSWER .
+  DATA : LV_ANSWER.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '화면 이동 확인'
+      TEXT_QUESTION         = '판매계획 생성 화면으로 이동하시겠습니까?'
+      TEXT_BUTTON_1         = '네'
+      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'
+      TEXT_BUTTON_2         = '아니오'
+      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'
+      DEFAULT_BUTTON        = '1'
+      DISPLAY_CANCEL_BUTTON = ' '
+    IMPORTING
+      ANSWER                = LV_ANSWER
+    EXCEPTIONS
+      OTHERS                = 1.
+  IF LV_ANSWER = '1'.
+    MESSAGE S013. " 이동이 완료되었습니다.
+    CALL TRANSACTION 'ZBBSD030'.  " 판매계획 생성
+  ELSE.
+    MESSAGE S010. " 취소되었습니다.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_empno</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CHECK_EMPNO .
+  DATA: LV_EMPNO TYPE ZBBT_SD070-EMPNO.
+
+  IF PA_EMPNO IS NOT INITIAL.
+    SELECT SINGLE EMPNO INTO LV_EMPNO
+      FROM ZBBT_SD070 WHERE EMPNO EQ PA_EMPNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      CLEAR   PA_EMPNO.
+      MESSAGE S078 WITH '직원번호' DISPLAY LIKE 'E'. " 유효한 & 데이터 값을 입력해주세요.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form check_spl</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CHECK_SPL .
+
+  DATA: LV_SPL TYPE ZBBT_SD070-SPLANNO.
+
+  IF SO_SPL IS NOT INITIAL.
+    SELECT SINGLE SPLANNO INTO LV_SPL
+      FROM ZBBT_SD070
+      WHERE SPLANNO IN SO_SPL.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      CLEAR   SO_SPL.
+      MESSAGE S078 WITH '판매계획번호' DISPLAY LIKE 'E'. " 유효한 & 데이터 값을 입력해주세요.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

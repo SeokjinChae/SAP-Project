@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD100_E01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD100_E01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD100_E01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD100_E01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+INITIALIZATION.
+
+  so_ODATE-sign = 'I'.
+  so_ODATE-option = 'BT'.
+  so_ODATE-low = sy-datum(6) && '01'.
+  so_ODATE-high = sy-datum.
+
+  APPEND so_ODATE.
+
+<font color ="#0000FF">*DATA : lv_dyntxt TYPE smp_dyntxt.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*lv_dyntxt-icon_id = icon_graphics.</font>
+<font color ="#0000FF">*lv_dyntxt-icon_text = '그래프'.</font>
+<font color ="#0000FF">*lv_dyntxt-quickinfo = '그래프 보기'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*sscrfields-functxt_01 = lv_dyntxt.</font>
+
+AT SELECTION-SCREEN OUTPUT. "pbo
+
+
+START-OF-SELECTION. "실행 시
+  PERFORM get_data. "데이터베이스에서 조회조건을 기준으로 데이터 가져옴
+  PERFORM get_domain_value.
+  PERFORM make_data.
+  PERFORM display_data.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

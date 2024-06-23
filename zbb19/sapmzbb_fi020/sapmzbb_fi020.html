@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZBB_FI020</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZBB_FI020</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-FI] 전표 생성</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      SAPMZBB_FI020</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : SAPMZBB_FI020</font>
+<font color ="#0000FF">*& DESCRIPTION : 전표생성</font>
+<font color ="#0000FF">*& MODULE      : FI</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-19 (이은지)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.17</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER      DATE            DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.17      신규 개발</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.23      주요기능 개발 완료</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.24      추가 가능 개발 (통화별로 금액 변환시켜주는 FM)</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.25      피드백 반영 완료</font>
+<font color ="#0000FF">*& ACA2-19        2024.05.01      미결계정(AP/AR)에 따라 인풋값 비활성화 기능 추가</font>
+<font color ="#0000FF">*& ACA2-19        2024.05.13      미결계정(AP/AR) 반제 기능 추가</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+include <a href ="mzbb_fi020_top.html">mzbb_fi020_top</a>.     " Global Data
+include <a href ="mzbb_fi020_c01.html">mzbb_fi020_c01</a>.     " Class
+include <a href ="mzbb_fi020_o01.html">mzbb_fi020_o01</a>.     " PBO-Modules
+include <a href ="mzbb_fi020_i01.html">mzbb_fi020_i01</a>.     " PAI-Modules
+include <a href ="mzbb_fi020_f01.html">mzbb_fi020_f01</a>.     " FORM-Routines
+
+include <a href ="mzbb_fi020_e01.html">mzbb_fi020_e01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0110 --&gt; 구매오더 상새조회</font>
+<font color ="#0000FF">* TITLE_0120 --&gt; 판매오더 상세조회</font>
+<font color ="#0000FF">* TITLE_100 --&gt; [SAP ssarum-FI] 전표 생성</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 001 전표조회</font>
+<font color ="#0000FF">* 002 새로고침</font>
+<font color ="#0000FF">* 003 전표생성</font>
+<font color ="#0000FF">* 004 전표를 발행하시겠습니까?</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   올바른 값을 입력해주세요.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*001   데이터 생성에 성공했습니다.</font>
+<font color ="#0000FF">*002   데이터 생성에 실패했습니다.</font>
+<font color ="#0000FF">*023   ALV에 데이터를 설정하는 과정 중에 오류가 발생되었습니다.</font>
+<font color ="#0000FF">*024   데이터 삭제에 성공했습니다.</font>
+<font color ="#0000FF">*027   &전표가 생성되었습니다.</font>
+<font color ="#0000FF">*028   전표 생성에 실패하였습니다.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*035   차변과 대변의 합계가 일치하지 않습니다.</font>
+<font color ="#0000FF">*068   데이터를 입력해주세요.</font>
+<font color ="#0000FF">*089   미래일자를 선택하셨습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

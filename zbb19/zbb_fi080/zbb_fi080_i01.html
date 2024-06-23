@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI080_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI080_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI080_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI080_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+     CASE ok_code.
+<font color ="#0000FF">*     WHEN 'CONVERT'.</font>
+<font color ="#0000FF">*       CALL TRANSACTION 'ZBBFI020'.</font>
+
+    WHEN 'PICK'.
+       DATA: lv_fieldname TYPE c LENGTH 30,
+             lv_value     TYPE c LENGTH 50. "필드 길이에 맞게 수정
+       FIELD-SYMBOLS: &lt;fs_field&gt; TYPE any.
+
+       " 현재 커서 위치에서 필드 이름과 값을 가져옴
+       GET CURSOR FIELD lv_fieldname VALUE lv_value.
+
+       " 더블클릭된 필드가 'ZBBT_FI020-ACCDCMUNO'인지 확인
+       IF lv_fieldname = 'ZBBT_FI020-ACCDCMUNO'.
+          PERFORM double_click.
+       ENDIF.
+
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+
+    WHEN 'REFRESH'.
+      CLEAR: zbbt_fi020-accdcmuno,
+             zbbt_fi020-pstdate.
+      PERFORM get_data.
+      PERFORM make_data.
+      PERFORM refresh_grid.
+
+    WHEN 'POST'. " 빈제전표 발횅
+      READ TABLE gt_sd040 INTO gs_sd040 WITH KEY check = 'X'.
+
+      IF sy-subrc &lt;&gt; 0.
+      MESSAGE i142 DISPLAY LIKE 'E'.
+      EXIT.
+    ELSE.
+      READ TABLE gt_mm050 INTO gs_mm050 WITH KEY check = 'X'.
+
+      IF sy-subrc &lt;&gt; 0.
+      MESSAGE i142 DISPLAY LIKE 'E'.
+      EXIT.
+      ELSE.
+      DATA lv_answer TYPE c.
+      IF zbbt_fi030-accprice = 0.
+        PERFORM popup_to_confirm USING lv_answer.
+        CHECK lv_answer EQ '1'.
+
+        PERFORM post_doc.
+        PERFORM get_data.
+        PERFORM make_data.
+        PERFORM refresh_grid.
+
+      ELSE.
+        MESSAGE i035 DISPLAY LIKE 'E'.
+      ENDIF.
+      ENDIF.
+    ENDIF.
+
+   ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+  PERFORM exit.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

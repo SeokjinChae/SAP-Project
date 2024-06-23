@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD070</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD070</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-SD] 판매계획 조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_SD070</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_SD070</font>
+<font color ="#0000FF">*& DESCRIPTION :  판매계획 조회</font>
+<font color ="#0000FF">*& MODULE      : SD</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-20 (이현석)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.17</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.17         신규 개발</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.19         1차 개발 완료 (ICON 제외 구현 완료)</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.22         SPLANYM -&gt; SPLANY / SPLANM 분리</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.23         ICON 추가 (메세지 추가 필요)</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.23         메세지 및 POPUP_TO_CONFIRM 추가</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.24         MATNM 추가 작업 완료</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.24         강사님 피드백 완료 (유효성 검사 및 초기값 설정 필요)</font>
+<font color ="#0000FF">*  ACA2-20        2024.04.24         유효성 검사 수정 중</font>
+<font color ="#0000FF">*  ACA2-20        2024.05.11         데이터 없을 때 ALV 화면 안넘어가게 설정 필요</font>
+<font color ="#0000FF">*  ACA2-20        2024.05.16         데이터 없을 때 ALV 화면 안넘어가게 설정 완료</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZBB_SD070 MESSAGE-ID ZBB_MSG.
+
+include <a href ="zbb_sd070_top.html">ZBB_SD070_TOP</a>.
+include <a href ="zbb_sd070_s01.html">ZBB_SD070_S01</a>.
+include <a href ="zbb_sd070_c01.html">ZBB_SD070_C01</a>.
+
+include <a href ="zbb_sd070_o01.html">ZBB_SD070_O01</a>.
+include <a href ="zbb_sd070_i01.html">ZBB_SD070_I01</a>.
+
+include <a href ="zbb_sd070_e01.html">ZBB_SD070_E01</a>.
+include <a href ="zbb_sd070_f01.html">ZBB_SD070_F01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [SAP ssarum-SD] 판매계획 조회</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* Q01 출고 처리 및 배송</font>
+<font color ="#0000FF">* Q02 배송 완료 처리 후 대금 청구 대기</font>
+<font color ="#0000FF">* Q03 대금 청구 처리</font>
+<font color ="#0000FF">* T01 조회조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_ALL         @4B@전체</font>
+<font color ="#0000FF">* PA_BOTH         전체</font>
+<font color ="#0000FF">* PA_EMPNO         담당자 직원번호</font>
+<font color ="#0000FF">* PA_NOR         일반 판매계획</font>
+<font color ="#0000FF">* PA_PLO         @5B@실행 완료</font>
+<font color ="#0000FF">* PA_PLX         @5D@미실행</font>
+<font color ="#0000FF">* PA_SUB         구독 판매계획</font>
+<font color ="#0000FF">* SO_SPD         계획수립일자</font>
+<font color ="#0000FF">* SO_SPL         판매 계획번호</font>
+<font color ="#0000FF">* SO_SPM         계획월</font>
+<font color ="#0000FF">* SO_SPY         계획년도</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   GO_GRID0 에러 발생</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*009   &건의 데이터 조회에 성공했습니다.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*013   이동이 완료되었습니다.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*032   허용되지 않는 입력값입니다.</font>
+<font color ="#0000FF">*078   유효한 & 데이터 값을 입력해주세요.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

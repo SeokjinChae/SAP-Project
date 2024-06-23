@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>SAPMZBB_SD030</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: SAPMZBB_SD030</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-SD] 판매계획 생성 및 수정</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool      SAPMZBB_SD030</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : SAPMZBB_SD030</font>
+<font color ="#0000FF">*& DESCRIPTION : [SD] 판매계획 생성 및 수정</font>
+<font color ="#0000FF">*& MODULE      : SD</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-20 (이현석)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.17</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ACA2-20        2024.04.17      프로그램 생성</font>
+<font color ="#0000FF">* ACA2-20        2024.04.22      Scr 100 (생성) 화면 구성</font>
+<font color ="#0000FF">* ACA2-20        2024.04.23      App. Toolbar(조회) 작성</font>
+<font color ="#0000FF">* ACA2-20        2024.04.26      Scr 200 (수정) 화면 구성</font>
+<font color ="#0000FF">* ACA2-20        2024.04.27      Range 변수 적용</font>
+<font color ="#0000FF">* ACA2-20        2024.04.30      Range 변수 유효성 검사 하다가 보류 (생성, 수정 먼저)</font>
+<font color ="#0000FF">* ACA2-20        2024.05.02      Scr 200 상단 ALV 완성, ITEM 작업 중</font>
+<font color ="#0000FF">* ACA2-20        2024.05.06      Scr 200 하단 ALV 추가 부분 제외 Toolbar 기능 완성</font>
+<font color ="#0000FF">* ACA2-20        2024.05.08      Scr 200 하단 ALV 완성 (아마?) + 새로고침 구현</font>
+<font color ="#0000FF">* ACA2-20        2024.05.11      Scr 100 헤더 및 아이템 생성 개발 완료 (단건)</font>
+<font color ="#0000FF">* ACA2-20        2024.05.12      Scr 200 상단 삭제 기능 추가</font>
+<font color ="#0000FF">* ACA2-20        2024.05.13      Scr 200 새로고침 POPUP 수정</font>
+<font color ="#0000FF">* ACA2-20        2024.05.16      Scr 100 자재코드 제외 유효성 검사 완료</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+include <a href ="mzbb_sd030_top.html">MZBB_SD030_TOP</a>.    " Global Data
+include <a href ="mzbb_sd030_c01.html">MZBB_SD030_C01</a>.    " Class
+
+include <a href ="mzbb_sd030_o01.html">MZBB_SD030_O01</a>.    " PBO-Modules
+include <a href ="mzbb_sd030_i01.html">MZBB_SD030_I01</a>.    " PAI-Modules
+include <a href ="mzbb_sd030_f01.html">MZBB_SD030_F01</a>.    " FORM-Routines
+include <a href ="mzbb_sd030_f02.html">MZBB_SD030_F02</a>.    " FORM-Routines_0200
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [SAP ssarum-SD] 판매계획 생성 및 수정</font>
+<font color ="#0000FF">* TITLE_0210 --&gt; 판매계획 헤더 정보 수정</font>
+<font color ="#0000FF">* TITLE_0220 --&gt; 판매계획 아이템 정보 수정</font>
+<font color ="#0000FF">* TITLE_0230 --&gt; 상세 판매계획 추가</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   CREATE OBJECT GO_CONT1 실패</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*000   &</font>
+<font color ="#0000FF">*001   데이터 생성에 성공했습니다.</font>
+<font color ="#0000FF">*002   데이터 생성에 실패했습니다.</font>
+<font color ="#0000FF">*003   선택된 행이 없습니다. 항목을 선택하세요.</font>
+<font color ="#0000FF">*004   데이터 저장에 성공했습니다.</font>
+<font color ="#0000FF">*005   데이터 저장을 취소했습니다.</font>
+<font color ="#0000FF">*006   수정할 행을 선택하세요.</font>
+<font color ="#0000FF">*009   &건의 데이터 조회에 성공했습니다.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*013   이동이 완료되었습니다.</font>
+<font color ="#0000FF">*022   1~12 사이의 유효한 월을 입력해주세요.</font>
+<font color ="#0000FF">*025   데이터 삭제를 취소했습니다.</font>
+<font color ="#0000FF">*026   수정할 하나의 행을 선택하세요.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*031   데이터 수정을 실패했습니다.</font>
+<font color ="#0000FF">*066   새로고침이 완료되었습니다.</font>
+<font color ="#0000FF">*068   데이터를 입력해주세요.</font>
+<font color ="#0000FF">*075   판매계획 &가 성공적으로 생성되었습니다.</font>
+<font color ="#0000FF">*076   &년 이후의 값을 입력해주세요.</font>
+<font color ="#0000FF">*111   올바른 연도 및 월을 입력해주세요.</font>
+<font color ="#0000FF">*128   &을(를) 입력해주세요.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD040_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD040_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SKELETON_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SKELETON_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+  PERFORM exit.
+ENDMODULE.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+  PERFORM user_command_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0110 INPUT.
+
+  CASE ok_code2.
+    WHEN 'FCODE1'.
+      PERFORM create_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0120 INPUT.
+
+  CASE ok_code3.
+    WHEN 'FCODE3'.
+      PERFORM update_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE s010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  SET_ICON  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE set_icon INPUT.
+
+  IF gs_sd020-subno EQ 'SUB001'.
+    icon_name = 'ICON_RED_LIGHT'.
+  ELSE.
+    icon_name = 'ICON_GREEN_LIGHT'.
+  ENDIF.
+
+  CALL FUNCTION 'ICON_CREATE'
+    EXPORTING
+      name   = icon_name
+    IMPORTING
+      result = icon.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATNO_F4_SD  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE on_matno_f4_sd INPUT.
+
+  DATA: lt_return       LIKE TABLE OF ddshretval      WITH HEADER LINE.
+
+  TYPES: BEGIN OF ty_matno,
+           matno LIKE zbbt_mm020-matno,
+           matnm LIKE zbbt_mm020-matnm,
+         END OF ty_matno.
+  DATA : lt_matno TYPE TABLE OF ty_matno,
+         ls_matno TYPE ty_matno.
+
+  SELECT matno ,matnm
+   INTO TABLE @lt_matno
+   FROM zbbt_mm020
+  WHERE mattype eq 'FG'
+    AND delflag &lt;&gt; 'X'
+   ORDER BY matno.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'MATNO'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-cprog
+      dynpnr       = sy-dynnr
+      dynprofield  = 'LT_MATNO-MATNO'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '원자재'            "팝업 제목"
+      value_org    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_MATNO            "select때 사용한 인터널 테입블
+      return_tab   = lt_return.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0130 INPUT.
+
+  CASE ok_code4.
+    WHEN 'FCODE5'.
+      PERFORM create_data2.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0140  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0140 INPUT.
+
+  CASE ok_code5.
+    WHEN 'FCODE7'.
+      PERFORM update_data2.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE8'.
+      MESSAGE s010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

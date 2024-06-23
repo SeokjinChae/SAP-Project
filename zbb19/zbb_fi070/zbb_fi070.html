@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI070</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI070</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-FI] 손익계산서 조회</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Report ZBB_FI070</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_FI070</font>
+<font color ="#0000FF">*& DESCRIPTION : 손익계산서 조회</font>
+<font color ="#0000FF">*& MODULE      : FI</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-19 (이은지)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.04.26</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE           DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.26      신규 개발</font>
+<font color ="#0000FF">*& ACA2-19        2024.04.29      주요기능 개발 완료</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zbb_fi070.
+
+include <a href ="zbb_fi070_top.html">zbb_fi070_top</a>.
+include <a href ="zbb_fi070_c01.html">zbb_fi070_c01</a>.
+
+include <a href ="zbb_fi070_o01.html">zbb_fi070_o01</a>.
+include <a href ="zbb_fi070_i01.html">zbb_fi070_i01</a>.
+include <a href ="zbb_fi070_f01.html">zbb_fi070_f01</a>.
+
+INITIALIZATION.
+
+ MOVE : 'I'  TO so_pe-sign,
+        'BT' TO so_pe-option,
+        '01' TO so_pe-low,
+        sy-datum+4(2) TO so_pe-high.
+
+  APPEND so_pe.
+
+START-OF-SELECTION.
+  PERFORM check_data.
+
+END-OF-SELECTION.
+
+  PERFORM set_title.
+  CALL SCREEN 100.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* MAINTITLE --&gt; [SAP ssarum-FI] 손익계산서 조회</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* T01 조회조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_CO         회사코드</font>
+<font color ="#0000FF">* PA_FI         회계연도</font>
+<font color ="#0000FF">* SO_PE         회계기간(월)</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 00</font>
+<font color ="#0000FF">*208   &</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: 0K</font>
+<font color ="#0000FF">*000   & & & &</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: Hard coded</font>
+<font color ="#0000FF">*   일치하는 데이터가 없습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

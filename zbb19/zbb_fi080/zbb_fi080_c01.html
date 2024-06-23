@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI080_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI080_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI080_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI080_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+CLASS lcl_event_handler DEFINITION.
+  PUBLIC SECTION.
+    DATA : gv_row TYPE i.
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    METHODS handle_toolbar</font>
+<font color ="#0000FF">*      FOR EVENT toolbar OF cl_gui_alv_grid</font>
+<font color ="#0000FF">*      IMPORTING e_object.</font>
+
+    METHODS handle_user_command
+      FOR EVENT user_command OF cl_gui_alv_grid
+      IMPORTING e_ucomm.
+
+    METHODS handle_data_changed
+      FOR EVENT data_changed OF cl_gui_alv_grid
+      IMPORTING er_data_changed
+                 sender.
+
+ENDCLASS.
+CLASS lcl_event_handler IMPLEMENTATION.
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  METHOD handle_toolbar.</font>
+<font color ="#0000FF">*    PERFORM toolbar USING e_object.</font>
+<font color ="#0000FF">*  ENDMETHOD.</font>
+
+  METHOD handle_user_command.
+    PERFORM user_command USING e_ucomm gv_row.
+  ENDMETHOD.
+
+  METHOD handle_data_changed.
+    CASE sender.
+      WHEN go_grid01.
+        PERFORM data_changed USING sender
+                                   er_data_changed.
+      WHEN go_grid02.
+        PERFORM data_changed2 USING sender
+                                   er_data_changed.
+    ENDCASE.
+  ENDMETHOD.
+
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

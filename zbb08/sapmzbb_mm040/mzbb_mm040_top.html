@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM040_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM040_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM040_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM040_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM SAPMZBB_MM040 MESSAGE-ID ZBB_MSG.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* ABAP 변수</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+TABLES : ZBBT_HR020, ZBBT_MM020, ZBBT_MM030, ZBBT_MM040.
+
+TYPES : BEGIN OF ZTY_LINE.
+          include structure <a href ="zbbt_mm040/dictionary-zbbt_mm040.html">ZBBT_MM040</a>.
+TYPES :   LIGHT    TYPE C LENGTH 1,
+          VENNM    TYPE ZBBT_MM030-VENNM,
+          EMPNM    TYPE ZBBT_HR020-EMPNM,
+          MATNM    TYPE ZBBT_MM020-MATNM,
+          LEADTIME TYPE ZBBT_MM020-LEADTIME,
+        END OF ZTY_LINE.
+
+DATA : GS_MM040 TYPE ZTY_LINE,
+       GT_MM040 TYPE TABLE OF ZTY_LINE.
+
+DATA : GV_WHERE1 TYPE STRING,
+       GV_WHERE2 TYPE STRING,
+       GV_WHERE3 TYPE STRING,
+       GV_WHERE4 TYPE STRING,
+       GV_WHERE5 TYPE STRING.
+
+CLASS : LCL_EVENT_HANDLER DEFINITION DEFERRED.
+DATA : GO_HANDLER TYPE REF TO LCL_EVENT_HANDLER.
+
+DATA : GV_CHECK TYPE STRING.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* SCREEN 요소</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : OK_CODE TYPE SY-UCOMM.
+
+DATA : RB1, RB2, RB3.
+
+CONSTANTS : GC_MARK VALUE 'X'.
+
+DATA : GO_CONT TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+       GO_GRID TYPE REF TO CL_GUI_ALV_GRID.
+
+DATA : GS_LAYOUT TYPE LVC_S_LAYO.
+
+DATA : GT_SCRITERIA TYPE LVC_T_SORT,
+       GS_SCRITERION TYPE LVC_S_SORT.
+
+DATA : GT_FIELD_CAT TYPE LVC_T_FCAT,
+       GS_FIELD_CAT TYPE LVC_S_FCAT.
+
+DATA : GS_ROW  TYPE LVC_S_ROW,
+       GT_ROWS TYPE LVC_T_ROW.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

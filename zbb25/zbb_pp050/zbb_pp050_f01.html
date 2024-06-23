@@ -1,0 +1,2089 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_PP050_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_PP050_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exit</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM exit .
+  CASE ok_code.
+    WHEN 'BACK'.
+      SET SCREEN 0.
+    WHEN 'CANCEL'.
+<font color ="#0000FF">*      CLEAR</font>
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+
+  CASE ok_code1.
+    WHEN 'BACK'.
+      SET SCREEN 0.
+    WHEN 'CANCEL'.
+<font color ="#0000FF">*      CLEAR</font>
+      LEAVE TO SCREEN 200.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_ALV0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv0 .
+  IF go_cont_dock IS INITIAL.
+
+    CREATE OBJECT go_cont_dock
+      EXPORTING
+        repid     = sy-repid                " Report to Which This Docking Control is Linked
+        dynnr     = sy-dynnr                " Screen to Which This Docking Control is Linked
+        side      = cl_gui_docking_container=&gt;dock_at_top    " Side to Which Control is Docked
+        extension = 1000              " Control Extension
+<font color ="#0000FF">*       EXTENSION = 500              " Control Extension</font>
+      EXCEPTIONS
+        OTHERS    = 1.
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.
+
+    CREATE OBJECT go_cont_split
+      EXPORTING
+        parent  = go_cont_dock                  " Parent Container
+        rows    = 2                 " Number of Rows to be displayed
+        columns = 1                 " Number of Columns to be Displayed
+      EXCEPTIONS
+        OTHERS  = 1.
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.
+<font color ="#0000FF">* 여기서부턴 각각 !</font>
+    CALL METHOD go_cont_split-&gt;get_container
+      EXPORTING
+        row       = 1               " Row
+        column    = 1               " Column
+      RECEIVING
+        container = go_cont_top.
+
+    CALL METHOD go_cont_split-&gt;get_container
+      EXPORTING
+        row       = 2               " Row
+        column    = 1               " Column
+      RECEIVING
+        container = go_cont_bot.
+
+    CALL METHOD go_cont_split-&gt;set_row_height
+      EXPORTING
+        id     = 1                " Row ID
+        height = 50               " Height
+      EXCEPTIONS
+        OTHERS = 1.
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.
+
+    CALL METHOD go_cont_split-&gt;set_row_height
+      EXPORTING
+        id     = 2                " Row ID
+        height = 50               " Height
+      EXCEPTIONS
+        OTHERS = 1.
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.                " Container
+
+<font color ="#0000FF">* 상단 그리드 객체 1개 생성</font>
+    CREATE OBJECT go_grid0
+      EXPORTING
+        i_parent = go_cont_top.                " Parent Container
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.
+
+<font color ="#0000FF">* 쇼핑몰 주문 / 구독 주문 경우에 따른 하단 그리드 객체 1개씩 총 2개 생성</font>
+    CREATE OBJECT go_grid1
+      EXPORTING
+        i_parent = go_cont_bot.                " Parent Container
+    IF sy-subrc &lt;&gt; 0.
+    ENDIF.
+
+<font color ="#0000FF">*    CREATE OBJECT GO_GRID2</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        I_PARENT = GO_CONT_BOT.                " Parent Container</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+
+  ELSE.
+    CALL METHOD go_grid0-&gt;refresh_table_display
+      EXPORTING
+        i_soft_refresh = 'X'              " Without Sort, Filter, etc.
+      EXCEPTIONS
+        finished       = 1.                " Display was Ended (by Export)
+    IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*     MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*       WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+    ENDIF.
+
+<font color ="#0000FF">*    GO_GRID0-&gt;REFRESH_TABLE_DISPLAY( ).</font>
+<font color ="#0000FF">*    GO_GRID1-&gt;REFRESH_TABLE_DISPLAY( ).</font>
+
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form REGISTER_EVENT_HANDLER0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM register_event_handler0 .
+  SET HANDLER lcl_event_handler=&gt;handle_double_click FOR go_grid0.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_VARIANT0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_variant0 .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout0 .
+<font color ="#0000FF">*  GS_LAYOUT0-SMALLTITLE = 'X'.</font>
+  gs_layout0-grid_title = '생산 계획 목록'.
+  gs_layout0-sel_mode = 'B'.
+  gs_layout0-zebra = 'X'.
+  gs_layout0-info_fname = 'linecolor'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_catalog0 .
+  gs_fcat0-fieldname = 'PPLANNO'.
+  gs_fcat0-coltext = '생산계획번호'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  gs_fcat0-key = 'X'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'PPSURIPDATE'.
+  gs_fcat0-coltext = '계획수립일자'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'PPLANDATE'.
+  gs_fcat0-coltext = '생산계획일'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'PPLANTXT'.
+  gs_fcat0-coltext = '생산계획설명'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+<font color ="#0000FF">*  gs_fcat0-hotspot = 'X'.</font>
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'PPLANYN'.
+  gs_fcat0-coltext = '생산계획 실행여부'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  gs_fcat0-no_out = 'X'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'PLANTNO'.
+  gs_fcat0-coltext = '공장번호'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+
+  gs_fcat0-fieldname = 'EMPNO'.
+  gs_fcat0-coltext = '직원번호'.
+  gs_fcat0-outputlen = '12'.
+  gs_fcat0-just = 'L'.
+  APPEND gs_fcat0 TO gt_fcat0.
+  CLEAR gs_fcat0.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_display0 .
+  CALL METHOD go_grid0-&gt;set_table_for_first_display
+    EXPORTING
+      i_structure_name = 'GS_DISPLAY0'              " Internal Output Table Structure Name
+<font color ="#0000FF">*     IS_VARIANT       =                  " Layout</font>
+<font color ="#0000FF">*     I_SAVE           =                  " Save Layout</font>
+<font color ="#0000FF">*     I_DEFAULT        = 'X'              " Default Display Variant</font>
+      is_layout        = gs_layout0                 " Layout
+<font color ="#0000FF">*     IS_PRINT         =                  " Print Control</font>
+    CHANGING
+      it_outtab        = gt_display0                " Output Table
+      it_fieldcatalog  = gt_fcat0                " Field Catalog
+<font color ="#0000FF">*     IT_SORT          = GT_SORTING_CRITERIA0                " Sort Criteria</font>
+<font color ="#0000FF">*     IT_FILTER        =                  " Filter Criteria</font>
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE 'FORM CALL_DISPLAY0 오류 발생.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout1 .
+
+<font color ="#0000FF">*  GS_LAYOUT1-SMALLTITLE = 'X'.</font>
+  gs_layout1-grid_title = '생산 계획 상세 내역'.
+  gs_layout1-sel_mode = 'A'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_catalog1 .
+  gs_fcat1-fieldname = 'PPLANNO'.
+  gs_fcat1-coltext = '생산계획번호'.
+  gs_fcat1-outputlen = '12'.
+  gs_fcat1-key = 'X'.
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+  gs_fcat1-fieldname = 'ITEMNO'.
+  gs_fcat1-coltext = ' 아이템번호'.
+  gs_fcat1-outputlen = '12'.
+  gs_fcat1-key = 'X'.
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+  gs_fcat1-fieldname = 'MATNO'.
+  gs_fcat1-coltext = '자재코드'.
+  gs_fcat1-outputlen = '12'.
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+  gs_fcat1-fieldname = 'MATNM'.
+  gs_fcat1-coltext = ' 자재명'.
+  gs_fcat1-outputlen = '12'.
+<font color ="#0000FF">*  GS_FCAT1-KEY = 'X'.</font>
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+  gs_fcat1-fieldname = 'QUANTITY'.
+  gs_fcat1-coltext = '수량'.
+  gs_fcat1-outputlen = '12'.
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+  gs_fcat1-fieldname = 'UNIT'.
+  gs_fcat1-coltext = '단위'.
+  gs_fcat1-outputlen = '12'.
+  gs_fcat1-just = 'L'.
+  APPEND gs_fcat1 TO gt_fcat1.
+  CLEAR gs_fcat1.
+
+
+
+<font color ="#0000FF">*  GS_FCAT1-FIELDNAME =</font>
+<font color ="#0000FF">*  GS_FCAT1-COLTEXT =</font>
+<font color ="#0000FF">*  GS_FCAT1-OUTPUTLEN = '12'.</font>
+<font color ="#0000FF">*  GS_FCAT1-JUST = 'L'.</font>
+<font color ="#0000FF">*  APPEND GS_FCAT1 TO GT_FCAT1.</font>
+<font color ="#0000FF">*  CLEAR GS_FCAT1.</font>
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_display1 .
+
+  IF go_grid1 IS NOT INITIAL.
+    CALL METHOD go_grid1-&gt;set_table_for_first_display
+      EXPORTING
+        i_buffer_active    = 'X'
+        i_bypassing_buffer = 'X'
+        i_structure_name   = 'GT_DISPLAY1'
+        i_save             = 'A'
+        is_layout          = gs_layout1
+      CHANGING
+        it_outtab          = gt_display1
+        it_fieldcatalog    = gt_fcat1.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data0 .
+  CLEAR gt_display0.
+
+  CASE 'X'.
+    WHEN pa_plx.
+      SELECT * FROM zbbt_pp020
+        INTO CORRESPONDING FIELDS OF TABLE gt_display0
+        WHERE pplanno IN so_pno
+            AND ppsuripdate IN so_psdt
+            AND pplandate IN so_pdt
+            AND empno IN so_eno
+            AND pplanyn EQ 0.
+
+    WHEN pa_plo.
+      SELECT * FROM zbbt_pp020
+        INTO CORRESPONDING FIELDS OF TABLE gt_display0
+        WHERE pplanno IN so_pno
+            AND ppsuripdate IN so_psdt
+            AND pplandate IN so_pdt
+            AND empno IN so_eno
+            AND pplanyn EQ 1.
+
+    WHEN pa_all.
+      SELECT * FROM zbbt_pp020
+        INTO CORRESPONDING FIELDS OF TABLE gt_display0
+        WHERE pplanno IN so_pno
+            AND ppsuripdate IN so_psdt
+            AND pplandate IN so_pdt
+            AND empno IN so_eno.
+
+  ENDCASE.
+
+LOOP AT gt_display0 INTO gs_display0.
+  IF gs_display0-pplanyn eq 1.
+    gs_display0-linecolor = 'C511'.
+  ELSEIF gs_display0-pplanyn eq 0.
+    gs_display0-linecolor = 'C611'.
+  ENDIF.
+  modify gt_display0 FROM gs_display0.
+ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data0</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data0 .
+  "여기는 신호등 데이터를 만들기 위해서 GT -&gt; GS에 루프넣고, 이프조건으로 값에따라 신호등정해주는곳.
+<font color ="#0000FF">*  IF .</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDIF.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DOUBLE_CLICK</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN</font>
+<font color ="#0000FF">*&      --&gt; E_ROW</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&      --&gt; SENDER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM double_click  USING    p_column
+                            p_row
+                            ps_row_no
+                            p_sender.
+
+<font color ="#0000FF">*READ TABLE GT_DISPLAY0 INTO GS_DISPLAY0 INDEX P_ROW.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*CLEAR GT_DISPLAY1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*PERFORM GET_DATA1.</font>
+<font color ="#0000FF">**PERFORM MAKE_DATA1.</font>
+<font color ="#0000FF">**PERFORM REGISTER_EVENT_HANDLER1. "이거 왜했더라?</font>
+<font color ="#0000FF">**PERFORM SET_SORTING1.</font>
+<font color ="#0000FF">*PERFORM CALL_DISPLAY1.</font>
+
+<font color ="#0000FF">*여기에서 케이스문 써가지고 조회시의 더블클릭 이벤트인지, 아니면 생성시의 더블클릭 이벤트인지 나누어야 할듯 ?</font>
+<font color ="#0000FF">*차무식 생각에도 클래스를 두번쓰는건 아닌거같음.</font>
+<font color ="#0000FF">*일단 아래에서 조회조건 케이스로 두고 구현해보자 할수있다 차무식</font>
+<font color ="#0000FF">*현재 스크린을 기준으로 달라지는 조건이면 좋을 것 같은데...? 근데 시스템변수가 뭔지 모름</font>
+<font color ="#0000FF">*어쩔수없다. 생성이든 조회든 셀렉션스크린에서 맞는거 고르고 들어갈테니깐 그걸 변수로 넣자</font>
+  CASE 'X'.
+    WHEN pa_view.
+
+      READ TABLE gt_display0 INTO gs_display0 INDEX p_row.
+
+      CLEAR gt_display1.
+
+      PERFORM get_data1.
+<font color ="#0000FF">*PERFORM MAKE_DATA1.</font>
+<font color ="#0000FF">*PERFORM REGISTER_EVENT_HANDLER1. "이거 왜했더라?</font>
+<font color ="#0000FF">*PERFORM SET_SORTING1.</font>
+      PERFORM call_display1.
+<font color ="#0000FF">*일단 조회는 작동한다 반쯤 성공</font>
+
+
+
+
+    WHEN pa_make.
+
+      READ TABLE gt_display2 INTO gs_display2 INDEX p_row.
+
+      CLEAR gt_display3.
+
+      PERFORM get_data3."이거는 판매계획 아이템 가져오는 용도
+<font color ="#0000FF">*PERFORM MAKE_DATA1.</font>
+<font color ="#0000FF">*PERFORM REGISTER_EVENT_HANDLER1. "이거 왜했더라?</font>
+<font color ="#0000FF">*PERFORM SET_SORTING1.</font>
+      PERFORM call_display3."이거는 판매계획 아이템 ALV 띄워주는 용도
+
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data1 .
+
+
+
+  SELECT
+    a~pplanno a~itemno a~quantity a~unit a~matno
+    b~matnm
+    INTO CORRESPONDING FIELDS OF TABLE gt_display1
+    FROM zbbt_pp030 AS a INNER JOIN zbbt_mm020 AS b
+    ON a~matno EQ b~matno
+    WHERE a~pplanno EQ gs_display0-pplanno.
+
+
+
+
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form REGISTER_EVENT_HANDLER1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM register_event_handler1 .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form modify_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM modify_screen .
+  LOOP AT SCREEN.
+    CASE 'X'.
+      WHEN pa_view.
+        IF screen-group1 = 'MAK'.
+          screen-active = '0'.
+        ELSEIF screen-group1 = 'VIE'.
+          screen-active = '1'.
+        ENDIF.
+      WHEN pa_make.
+        IF screen-group1 = 'MAK'.
+          screen-active = '1'.
+        ELSEIF screen-group1 = 'VIE'.
+          screen-active = '0'.
+        ENDIF.
+
+    ENDCASE.
+
+    MODIFY SCREEN.
+
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 판매계획(sd070, 080) 데이터 가져오는 역할</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data2 .
+<font color ="#0000FF">*  CLEAR GT_DISPLAY2.</font>
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 판매계획 헤더(SD070) 로컬 테이블에 저장. 나중에 080이랑 합쳐서 GT_DISPLAY2에 넣어야함</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+
+
+  SELECT * FROM zbbt_sd070
+    INTO CORRESPONDING FIELDS OF TABLE gt_display2
+    WHERE splanno IN so_sno
+        AND splandate IN so_sdt
+        AND splany IN so_spy
+        AND splanm IN so_spm
+        AND empno IN so_seno
+        AND splanyn eq 0 "판매계획이 실행되지 않은 것 !
+
+    .
+
+<font color ="#0000FF">*    SELECT</font>
+<font color ="#0000FF">*      a~splanno</font>
+<font color ="#0000FF">*      b~splanno b~matno b~quantity b~unit</font>
+<font color ="#0000FF">*      INTO CORRESPONDING FIELDS OF TABLE gt_display2</font>
+<font color ="#0000FF">*      FROM zbbt_sd080 as b</font>
+<font color ="#0000FF">*      INNER JOIN zbbt_sd070 as a</font>
+<font color ="#0000FF">*      on a~splanno eq b~splanno</font>
+<font color ="#0000FF">*      WHERE b~splanno in so_sno</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          and splandate in so_sdt</font>
+<font color ="#0000FF">*          and splany in so_spy</font>
+<font color ="#0000FF">*          and splanm in so_spm</font>
+<font color ="#0000FF">*          and empno in so_seno</font>
+  .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data2 .
+  DATA : lv_current_year  TYPE i.
+  DATA : lv_current_month TYPE i.
+
+  lv_current_year = sy-datum+0(4).
+  lv_current_month = sy-datum+4(2).
+
+  LOOP AT gt_display2 INTO gs_display2.
+    IF gs_display2-splany &gt; lv_current_year. "판매계획년이 내년인 경우,
+      gs_display2-light = 3. "초록불.
+      g_count0 = g_count0 + 1.
+    ELSEIF gs_display2-splany = lv_current_year. "판매계획년이 올해인 경우,
+<font color ="#0000FF">*      IF GS_DISPLAY2-SPLANM &gt; LV_CURRENT_MONTH. "판매계획년이 올해이고, 판매계획월이 현재월 기준 최소한 한 달 이상의 기간이 있는 경우,,</font>
+      IF gs_display2-splanm - lv_current_month &gt; 1. "판매계획년이 올해이고, 판매계획월이 현재월 기준 최소한 한 달 이상의 기간이 있는 경우,,
+        gs_display2-light = 3.
+        g_count0 = g_count0 + 1.
+<font color ="#0000FF">*      ELSEIF GS_DISPLAY2-SPLANM = LV_CURRENT_MONTH. "판매계획년이 올해이고, 판매계획월이 이번달인 경우,</font>
+      ELSEIF gs_display2-splanm - lv_current_month = 1. "판매계획년이 올해이고, 판매계획월이 이번달인 경우,
+        gs_display2-light = 2. "노랑불. 긴급
+        y_count0 = y_count0 + 1.
+      ELSE. "판매계획년은 올해이나, 판매계획월을 이미 지난 경우,
+        gs_display2-light = 1. "빨강불. 늦음
+        r_count0 = r_count0 + 1.
+
+      ENDIF.
+    ELSEIF gs_display2-splany &lt; lv_current_year. "판매계획연이 현재연을 이미 지난 경우,
+      gs_display2-light = 1.
+    ENDIF.
+
+    gs_display2-button = '계획생성'.
+
+    MODIFY gt_display2 FROM gs_display2.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv23</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv2 .
+
+  CREATE OBJECT go_container
+    EXPORTING
+<font color ="#0000FF">*     parent         =</font>
+      container_name = 'MY_CONTROL'
+<font color ="#0000FF">*     style          =</font>
+<font color ="#0000FF">*     lifetime       = lifetime_default</font>
+<font color ="#0000FF">*     repid          =</font>
+<font color ="#0000FF">*     dynnr          =</font>
+<font color ="#0000FF">*     no_autodef_progid_dynnr     =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     cntl_error     = 1</font>
+<font color ="#0000FF">*     cntl_system_error           = 2</font>
+<font color ="#0000FF">*     create_error   = 3</font>
+<font color ="#0000FF">*     lifetime_error = 4</font>
+<font color ="#0000FF">*     lifetime_dynpro_dynpro_link = 5</font>
+      OTHERS         = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_grid2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_grid2 .
+  CREATE OBJECT go_alv_grid
+    EXPORTING
+<font color ="#0000FF">*     i_shellstyle      = 0</font>
+<font color ="#0000FF">*     i_lifetime        =</font>
+      i_parent = go_container
+<font color ="#0000FF">*     i_appl_events     = SPACE</font>
+<font color ="#0000FF">*     i_parentdbg       =</font>
+<font color ="#0000FF">*     i_applogparent    =</font>
+<font color ="#0000FF">*     i_graphicsparent  =</font>
+<font color ="#0000FF">*     i_name   =</font>
+<font color ="#0000FF">*     i_fcat_complete   = SPACE</font>
+<font color ="#0000FF">*     o_previous_sral_handler =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     error_cntl_create = 1</font>
+<font color ="#0000FF">*     error_cntl_init   = 2</font>
+<font color ="#0000FF">*     error_cntl_link   = 3</font>
+<font color ="#0000FF">*     error_dp_create   = 4</font>
+      OTHERS   = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_catalog2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_catalog2 .
+
+  gs_fcat2-fieldname = 'LIGHT'.
+  gs_fcat2-coltext = '상태'.
+  gs_fcat2-outputlen = '3'.
+  gs_fcat2-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT2-KEY = 'X'.</font>
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANNO'.
+  gs_fcat2-coltext = '판매계획번호'.
+  gs_fcat2-outputlen = '11'.
+  gs_fcat2-just = 'L'.
+  gs_fcat2-key = 'X'.
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANDATE'.
+  gs_fcat2-coltext = '계획수립일자'.
+  gs_fcat2-outputlen = '8'.
+  gs_fcat2-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT2-KEY = 'X'.</font>
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANY'.
+  gs_fcat2-coltext = '계획년도'.
+  gs_fcat2-outputlen = '5'.
+  gs_fcat2-just = 'L'.
+  gs_fcat2-key = 'X'.
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANM'.
+  gs_fcat2-coltext = '계획월'.
+  gs_fcat2-outputlen = '4'.
+  gs_fcat2-just = 'L'.
+  gs_fcat2-key = 'X'.
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANTXT'.
+  gs_fcat2-coltext = '판매계획설명'.
+  gs_fcat2-outputlen = '40'.
+  gs_fcat2-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT2-KEY = 'X'.</font>
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'SPLANYN'.
+  gs_fcat2-coltext = '판매계획 실행여부'.
+  gs_fcat2-outputlen = '13'.
+  gs_fcat2-just = 'L'.
+  gs_fcat2-no_out = 'X'.
+<font color ="#0000FF">*  GS_FCAT2-KEY = 'X'.</font>
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'EMPNO'.
+  gs_fcat2-coltext = '직원번호'.
+  gs_fcat2-outputlen = '7'.
+  gs_fcat2-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT2-KEY = 'X'.</font>
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+  gs_fcat2-fieldname = 'BUTTON'.
+  gs_fcat2-coltext = '생산계획'.
+  gs_fcat2-outputlen = '12'.
+  gs_fcat2-just = 'C'.
+  GS_FCAT2-NO_OUT = 'X'.
+  gs_fcat2-style = cl_gui_alv_grid=&gt;mc_style_button. "버튼 만들기
+  APPEND gs_fcat2 TO gt_fcat2.
+  CLEAR gs_fcat2.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_display2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_display2 .
+  CALL METHOD go_alv_grid-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*     i_buffer_active  =</font>
+<font color ="#0000FF">*     i_bypassing_buffer            =</font>
+<font color ="#0000FF">*     i_consistency_check           =</font>
+      i_structure_name = 'GS_DISPLAY2'
+<font color ="#0000FF">*     is_variant       =</font>
+<font color ="#0000FF">*     i_save           =</font>
+<font color ="#0000FF">*     i_default        = 'X'</font>
+      is_layout        = gs_layout2
+<font color ="#0000FF">*     is_print         =</font>
+<font color ="#0000FF">*     it_special_groups             =</font>
+<font color ="#0000FF">*     it_toolbar_excluding          =</font>
+<font color ="#0000FF">*     it_hyperlink     =</font>
+<font color ="#0000FF">*     it_alv_graphics  =</font>
+<font color ="#0000FF">*     it_except_qinfo  =</font>
+<font color ="#0000FF">*     ir_salv_adapter  =</font>
+    CHANGING
+      it_outtab        = gt_display2
+      it_fieldcatalog  = gt_fcat2
+<font color ="#0000FF">*     it_sort          =</font>
+<font color ="#0000FF">*     it_filter        =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     invalid_parameter_combination = 1</font>
+<font color ="#0000FF">*     program_error    = 2</font>
+<font color ="#0000FF">*     too_many_lines   = 3</font>
+      OTHERS           = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   Implement suitable error handling here</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout2 .
+<font color ="#0000FF">*  GS_LAYOUT2-SMALLTITLE = 'X'.</font>
+  gs_layout2-grid_title = '판매 계획 목록'.
+  gs_layout2-sel_mode = 'A'.
+  gs_layout2-zebra = 'X'.
+  gs_layout2-excp_fname = 'LIGHT'.
+  gs_layout2-excp_led = 'X'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv3 .
+  CREATE OBJECT go_container2
+    EXPORTING
+<font color ="#0000FF">*     parent         =</font>
+      container_name = 'MY_CONTROL2'
+<font color ="#0000FF">*     style          =</font>
+<font color ="#0000FF">*     lifetime       = lifetime_default</font>
+<font color ="#0000FF">*     repid          =</font>
+<font color ="#0000FF">*     dynnr          =</font>
+<font color ="#0000FF">*     no_autodef_progid_dynnr     =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     cntl_error     = 1</font>
+<font color ="#0000FF">*     cntl_system_error           = 2</font>
+<font color ="#0000FF">*     create_error   = 3</font>
+<font color ="#0000FF">*     lifetime_error = 4</font>
+<font color ="#0000FF">*     lifetime_dynpro_dynpro_link = 5</font>
+      OTHERS         = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_grid3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_grid3 .
+  CREATE OBJECT go_alv_grid2
+    EXPORTING
+<font color ="#0000FF">*     i_shellstyle      = 0</font>
+<font color ="#0000FF">*     i_lifetime        =</font>
+      i_parent = go_container2
+<font color ="#0000FF">*     i_appl_events     = SPACE</font>
+<font color ="#0000FF">*     i_parentdbg       =</font>
+<font color ="#0000FF">*     i_applogparent    =</font>
+<font color ="#0000FF">*     i_graphicsparent  =</font>
+<font color ="#0000FF">*     i_name   =</font>
+<font color ="#0000FF">*     i_fcat_complete   = SPACE</font>
+<font color ="#0000FF">*     o_previous_sral_handler =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     error_cntl_create = 1</font>
+<font color ="#0000FF">*     error_cntl_init   = 2</font>
+<font color ="#0000FF">*     error_cntl_link   = 3</font>
+<font color ="#0000FF">*     error_dp_create   = 4</font>
+      OTHERS   = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout3 .
+  gs_layout3-grid_title = '판매 계획 상세'.
+  gs_layout3-sel_mode = 'A'.
+  gs_layout3-zebra = 'X'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_catalog3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_catalog3 .
+
+  gs_fcat3-fieldname = 'SPLANNO'.
+  gs_fcat3-coltext = '판매계획번호'.
+  gs_fcat3-outputlen = '12'.
+  gs_fcat3-just = 'L'.
+  gs_fcat3-key = 'X'.
+  APPEND gs_fcat3 TO gt_fcat3.
+  CLEAR gs_fcat3.
+
+  gs_fcat3-fieldname = 'MATNO'.
+  gs_fcat3-coltext = '자재코드'.
+  gs_fcat3-outputlen = '12'.
+  gs_fcat3-just = 'L'.
+  gs_fcat3-key = 'X'.
+  APPEND gs_fcat3 TO gt_fcat3.
+  CLEAR gs_fcat3.
+
+  gs_fcat3-fieldname = 'MATNM'.
+  gs_fcat3-coltext = '자재명'.
+  gs_fcat3-outputlen = '12'.
+  gs_fcat3-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT3-KEY = 'X'.</font>
+  APPEND gs_fcat3 TO gt_fcat3.
+  CLEAR gs_fcat3.
+
+  gs_fcat3-fieldname = 'QUANTITY'.
+  gs_fcat3-coltext = '수량'.
+  gs_fcat3-outputlen = '12'.
+  gs_fcat3-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT3-KEY = 'X'.</font>
+  APPEND gs_fcat3 TO gt_fcat3.
+  CLEAR gs_fcat3.
+
+  gs_fcat3-fieldname = 'UNIT'.
+  gs_fcat3-coltext = '단위'.
+  gs_fcat3-outputlen = '12'.
+  gs_fcat3-just = 'L'.
+<font color ="#0000FF">*  GS_FCAT3-KEY = 'X'.</font>
+  APPEND gs_fcat3 TO gt_fcat3.
+  CLEAR gs_fcat3.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_display3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_display3 .
+  CALL METHOD go_alv_grid2-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*     i_buffer_active  =</font>
+<font color ="#0000FF">*     i_bypassing_buffer            =</font>
+<font color ="#0000FF">*     i_consistency_check           =</font>
+      i_structure_name = 'GS_DISPLAY3'
+<font color ="#0000FF">*     is_variant       =</font>
+<font color ="#0000FF">*     i_save           =</font>
+<font color ="#0000FF">*     i_default        = 'X'</font>
+      is_layout        = gs_layout5
+<font color ="#0000FF">*     is_print         =</font>
+<font color ="#0000FF">*     it_special_groups             =</font>
+<font color ="#0000FF">*     it_toolbar_excluding          =</font>
+<font color ="#0000FF">*     it_hyperlink     =</font>
+<font color ="#0000FF">*     it_alv_graphics  =</font>
+<font color ="#0000FF">*     it_except_qinfo  =</font>
+<font color ="#0000FF">*     ir_salv_adapter  =</font>
+    CHANGING
+      it_outtab        = gt_display3
+      it_fieldcatalog  = gt_fcat3
+<font color ="#0000FF">*     it_sort          =</font>
+<font color ="#0000FF">*     it_filter        =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     invalid_parameter_combination = 1</font>
+<font color ="#0000FF">*     program_error    = 2</font>
+<font color ="#0000FF">*     too_many_lines   = 3</font>
+      OTHERS           = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   Implement suitable error handling here</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data3 .
+
+  SELECT
+    a~splanno "a~itemno
+     a~matno a~quantity a~unit
+    b~matno b~matnm
+    INTO CORRESPONDING FIELDS OF TABLE gt_display3
+    FROM zbbt_sd080 AS a INNER JOIN zbbt_mm020 AS b
+    ON a~matno EQ b~matno
+    WHERE a~splanno EQ gs_display2-splanno.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form BUTTON_CLICK</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; ES_COL_ID</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM button_click  USING    ps_col_id
+                            ps_row_no TYPE lvc_s_roid.
+
+
+  READ TABLE gt_display2 INTO gs_display2 INDEX ps_row_no-row_id.
+  PERFORM get_data4.
+  PERFORM call_display4.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data4." CHANGING gv_pplanno.
+
+  DATA : lv_year TYPE zbbt_sd070-splany. "판매계획의 계획연도 로컬변수
+  DATA : lv_month TYPE zbbt_sd070-splanm. "판매계획의 계획월 로컬변수
+  DATA : lv_date TYPE sy-datum. "계획연도와 계획월 가공해서 특정일자로 넣을 로컬변수
+
+  DATA : lv_sdtopp_num TYPE c LENGTH 15. "판매계획번호의 앞 잘라내고 생산계획번호에 임시로 넣을 번호.
+
+  CLEAR gv_pplanno.
+
+  SELECT SINGLE splanno INTO lv_sdtopp_num
+    FROM zbbt_sd070 WHERE splanno EQ gs_display2-splanno.
+
+  SELECT SINGLE splany INTO lv_year
+    FROM zbbt_sd070 WHERE splany EQ gs_display2-splany.
+
+  SELECT SINGLE splanm INTO lv_month
+    FROM zbbt_sd070 WHERE splanm EQ gs_display2-splanm.
+
+  CONCATENATE lv_year lv_month '01' INTO lv_date.
+
+  lv_sdtopp_num = lv_sdtopp_num+4(9).
+  gv_sdtopp_num = lv_sdtopp_num.
+
+  gs_display4-pplanno = lv_sdtopp_num.
+
+  gs_display4-pplandate = lv_date.
+
+  gs_display4-pplanyn = 0.
+  gs_display4-plantno = 'BYP'.
+
+
+<font color ="#0000FF">*---------------PPLANTXT(생산계획 설명) 콩카터네이트로 자동 만들기 할꺼임.</font>
+  DATA : lv_pplantxt TYPE c LENGTH 50.
+
+  CONCATENATE lv_year '년' lv_month '월 생산계획' INTO lv_pplantxt.
+  gs_display4-pplantxt = lv_pplantxt.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+  gs_display4-create_dt = sy-datum.
+  gs_display4-create_tm = sy-timlo.
+  gs_display4-cuser = sy-uname.
+  gs_display4-update_dt = ''.
+  gs_display4-update_tm = ''.
+  gs_display4-uuser = ''.
+
+  APPEND gs_display4 TO gt_display4. " 이거는 맨 마지막에 들어가야함.
+<font color ="#0000FF">*   CLEAR GS_DISPLAY4.</font>
+
+
+
+<font color ="#0000FF">*  WHEN 2.</font>
+<font color ="#0000FF">**    DATA : LIN TYPE I VALUE 0.</font>
+<font color ="#0000FF">**    LIN = LINES( GT_DISPLAY4 ).</font>
+<font color ="#0000FF">**    READ TABLE GT_DISPLAY4 INDEX</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    MESSAGE S005.</font>
+<font color ="#0000FF">*  WHEN OTHERS.</font>
+<font color ="#0000FF">*ENDCASE.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_PPLANNO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text 20240507</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_pplanno USING p_gv_pplanno.
+
+  DATA : lv_pplanno_date  TYPE n LENGTH 6,
+         lv_pplanno_year  TYPE n LENGTH 2,
+         lv_pplanno_month TYPE n LENGTH 2,
+         lv_pplanno_dat   TYPE n LENGTH 2.
+
+  DATA : lv_where TYPE c LENGTH 12,
+         lv_num   TYPE n LENGTH 3.
+
+  CALL FUNCTION 'NUMBER_GET_NEXT'
+    EXPORTING
+      nr_range_nr = '01'
+      object      = 'ZBB_PPLANN'
+<font color ="#0000FF">*     QUANTITY    = '1'</font>
+<font color ="#0000FF">*     SUBOBJECT   = ' '</font>
+<font color ="#0000FF">*     TOYEAR      = '0000'</font>
+<font color ="#0000FF">*     IGNORE_BUFFER                 = ' '</font>
+    IMPORTING
+      number      = lv_num
+<font color ="#0000FF">*     QUANTITY    =</font>
+<font color ="#0000FF">*     RETURNCODE  =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     INTERVAL_NOT_FOUND            = 1</font>
+<font color ="#0000FF">*     NUMBER_RANGE_NOT_INTERN       = 2</font>
+<font color ="#0000FF">*     OBJECT_NOT_FOUND              = 3</font>
+<font color ="#0000FF">*     QUANTITY_IS_0                 = 4</font>
+<font color ="#0000FF">*     QUANTITY_IS_NOT_1             = 5</font>
+<font color ="#0000FF">*     INTERVAL_OVERFLOW             = 6</font>
+<font color ="#0000FF">*     BUFFER_OVERFLOW               = 7</font>
+      OTHERS      = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">* Implement suitable error handling here</font>
+  ENDIF.
+
+  lv_pplanno_date = sy-datum+2(6). "이거 이어서 하자
+
+  CONCATENATE 'PLN' lv_pplanno_date lv_num INTO P_Gv_pplanno.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_DATA1</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_data1 .
+
+  gs_display4-empno = zbbt_pp020-empno.
+  GV_EMPNO = gs_display4-empno.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_alv4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_alv4 .
+  CREATE OBJECT go_container3
+    EXPORTING
+<font color ="#0000FF">*     parent         =</font>
+      container_name = 'MY_CONTROL3'
+<font color ="#0000FF">*     style          =</font>
+<font color ="#0000FF">*     lifetime       = lifetime_default</font>
+<font color ="#0000FF">*     repid          =</font>
+<font color ="#0000FF">*     dynnr          =</font>
+<font color ="#0000FF">*     no_autodef_progid_dynnr     =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     cntl_error     = 1</font>
+<font color ="#0000FF">*     cntl_system_error           = 2</font>
+<font color ="#0000FF">*     create_error   = 3</font>
+<font color ="#0000FF">*     lifetime_error = 4</font>
+<font color ="#0000FF">*     lifetime_dynpro_dynpro_link = 5</font>
+      OTHERS         = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_grid4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_grid4 .
+  CREATE OBJECT go_alv_grid3
+    EXPORTING
+<font color ="#0000FF">*     i_shellstyle      = 0</font>
+<font color ="#0000FF">*     i_lifetime        =</font>
+      i_parent = go_container3
+<font color ="#0000FF">*     i_appl_events     = SPACE</font>
+<font color ="#0000FF">*     i_parentdbg       =</font>
+<font color ="#0000FF">*     i_applogparent    =</font>
+<font color ="#0000FF">*     i_graphicsparent  =</font>
+<font color ="#0000FF">*     i_name   =</font>
+<font color ="#0000FF">*     i_fcat_complete   = SPACE</font>
+<font color ="#0000FF">*     o_previous_sral_handler =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     error_cntl_create = 1</font>
+<font color ="#0000FF">*     error_cntl_init   = 2</font>
+<font color ="#0000FF">*     error_cntl_link   = 3</font>
+<font color ="#0000FF">*     error_dp_create   = 4</font>
+      OTHERS   = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO</font>
+<font color ="#0000FF">*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout4 .
+  gs_layout3-grid_title = '임시 생산계획'.
+  gs_layout3-sel_mode = 'A'.
+  gs_layout3-zebra = 'X'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_catalog4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_catalog4 .
+
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PPLANNO'.
+  gs_fcat4-coltext = '생산계획번호'.
+  gs_fcat4-outputlen = 10.
+  gs_fcat4-just ='L'.
+  gs_fcat4-key = 'X'.
+  gs_fcat4-no_out = 'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PPSURIPDATE'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT = '계획수립일자'.</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN = 8.</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST ='X'.</font>
+<font color ="#0000FF">**  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PPLANDATE'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PPLANTXT'.
+  gs_fcat4-coltext = '생산계획설명'.
+  gs_fcat4-outputlen = 30.
+  gs_fcat4-just = 'L'.
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+<font color ="#0000FF">*  FS_FCAT4-NO_OUT =    "안보이게 해주는것.</font>
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PPLANYN'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.    "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'PLANTNO'.
+  gs_fcat4-coltext = '공장번호'.
+  gs_fcat4-outputlen = 15.
+  gs_fcat4-just ='L'.
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+<font color ="#0000FF">*  FS_FCAT4-NO_OUT =    "안보이게 해주는것.</font>
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'EMPNO'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'CREATE_DT'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'CREATE_TM'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.    "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'CUSER'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.    "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'UPDATE_DT'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out = 'X'.    "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'UPDATE_TM'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out =  'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+  gs_fcat4-fieldname = 'UUSER'.
+<font color ="#0000FF">*  GS_FCAT4-COLTEXT =</font>
+<font color ="#0000FF">*  FS_FCAT4-OUTPUTLEN =</font>
+<font color ="#0000FF">*  FS_FCAT4-JUST =</font>
+<font color ="#0000FF">*  FS_FCAT4-KEY =</font>
+  gs_fcat4-no_out =  'X'.   "안보이게 해주는것.
+  APPEND gs_fcat4 TO gt_fcat4.
+  CLEAR gs_fcat4.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form call_display4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM call_display4 .
+  CALL METHOD go_alv_grid3-&gt;set_table_for_first_display
+    EXPORTING
+<font color ="#0000FF">*     i_buffer_active  =</font>
+<font color ="#0000FF">*     i_bypassing_buffer            =</font>
+<font color ="#0000FF">*     i_consistency_check           =</font>
+      i_structure_name = 'GS_DISPLAY4'
+<font color ="#0000FF">*     is_variant       =</font>
+<font color ="#0000FF">*     i_save           =</font>
+<font color ="#0000FF">*     i_default        = 'X'</font>
+      is_layout        = gs_layout3
+<font color ="#0000FF">*     is_print         =</font>
+<font color ="#0000FF">*     it_special_groups             =</font>
+<font color ="#0000FF">*     it_toolbar_excluding          =</font>
+<font color ="#0000FF">*     it_hyperlink     =</font>
+<font color ="#0000FF">*     it_alv_graphics  =</font>
+<font color ="#0000FF">*     it_except_qinfo  =</font>
+<font color ="#0000FF">*     ir_salv_adapter  =</font>
+    CHANGING
+      it_outtab        = gt_display4
+      it_fieldcatalog  = gt_fcat4
+<font color ="#0000FF">*     it_sort          =</font>
+<font color ="#0000FF">*     it_filter        =</font>
+    EXCEPTIONS
+<font color ="#0000FF">*     invalid_parameter_combination = 1</font>
+<font color ="#0000FF">*     program_error    = 2</font>
+<font color ="#0000FF">*     too_many_lines   = 3</font>
+      OTHERS           = 1.
+  IF sy-subrc &lt;&gt; 0.
+<font color ="#0000FF">*   Implement suitable error handling here</font>
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form TOOLBAR</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toolbar  USING    pc_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  DATA : ls_button TYPE stb_button.
+
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+  CLEAR ls_button.
+  ls_button-function = 'CREATE'.
+  ls_button-quickinfo = '생성'.
+  ls_button-icon      = icon_insert_row.
+  ls_button-text = '다건추가'.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form USER_COMMAND</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&      --&gt; GV_ROWID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command  USING    pv_ucomm TYPE sy-ucomm
+                            pt_rowid TYPE lvc_t_roid.
+
+
+<font color ="#0000FF">*  DATA : gv_pplanno TYPE zbbt_sd080-splanno,</font>
+<font color ="#0000FF">*        ls_display4 TYPE zbbt_pp020,</font>
+<font color ="#0000FF">*         lv_pplanno TYPE zbbt_pp030-pplanno.</font>
+
+  DATA : ls_display4 TYPE zbbt_pp020.
+  DATA : lv_pplanno TYPE zbbt_pp030-pplanno.
+
+
+
+
+  DATA : lv_answer.
+
+  CASE pv_ucomm.
+    WHEN 'CREATE'. "큰 판매계획 헤더 그리드에서 다건추가 버튼 누른 경우
+
+      CALL METHOD go_alv_grid-&gt;get_selected_rows
+        IMPORTING
+          et_index_rows = gt_index.
+<font color ="#0000FF">*          et_row_no     =</font>
+      .
+      LOOP AT gt_index INTO gs_index.
+        READ TABLE gt_display2 INTO gs_display2 INDEX gs_index-index. "다건 선택한 로우들이 루프문 안에서 각각 GS_DISPLAY2 안에 들어 있는 거임 !
+        PERFORM get_data4. "헤더 정보를 만들어주는 역할
+        PERFORM get_data_item. "아이템 정보를 만들어주는 역할
+
+        CLEAR gs_index.
+      ENDLOOP.
+      PERFORM call_display4.
+
+<font color ="#0000FF">*    WHEN 'DELETE'. "쪼끄만 임시생산계획 그리드에서 삭제 버튼을 눌렀을 경우,</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      DATA lv_index TYPE i.</font>
+<font color ="#0000FF">*      DATA lv_add TYPE i.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      CALL METHOD go_alv_grid3-&gt;get_selected_rows</font>
+<font color ="#0000FF">*        IMPORTING</font>
+<font color ="#0000FF">*          et_index_rows = gt_index.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**      DESCRIBE TABLE gt_index LINES sy-tfill.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">**      SORT gt_index BY index DESCENDING.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      LOOP AT gt_index INTO gs_index.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        IF gs_index-rowtype IS INITIAL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          lv_index = gs_index-index - lv_add.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          READ TABLE gt_display4 INTO ls_display4 INDEX lv_index.</font>
+<font color ="#0000FF">*          gv_pplanno = ls_display4-pplanno.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          PERFORM delete_item USING gv_sdtopp_num.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          DELETE gt_display4 INDEX lv_index. " 이 부분은 헤더정보를 삭제하므로, 아이템보다 나중에 삭제해줘야 함.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          IF sy-subrc EQ 0.</font>
+<font color ="#0000FF">*            ADD 1 TO lv_add.</font>
+<font color ="#0000FF">*          ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      PERFORM call_display4.</font>
+
+    WHEN 'CLEAR'.
+      CLEAR gt_display4.
+      CLEAR gt_pp030.
+      PERFORM call_display4.
+
+    WHEN 'UPLOAD'.
+
+      " 저장의사 묻기
+
+      " 헤더 저장
+      " subrc = 0 일때 아이템 데이터 저장.
+      " -- subrc = 0 -&gt; 성공메세지
+      " -- subrc &lt;&gt; 0 -&gt; 에러메시지 rollback work.
+
+      " subrc &lt;&gt; 0 메세지 exit
+
+      CALL SCREEN 210 STARTING AT 15 15.
+
+      CASE ok_code2.
+        WHEN 'FCODE1'.
+
+          IF gt_display4 IS NOT INITIAL.
+
+            CALL FUNCTION 'POPUP_TO_CONFIRM'
+              EXPORTING
+                titlebar              = '생산계획 생성'
+                text_question         = '생산계획을 생성하시겠습니까?'
+                text_button_1         = '네'
+                icon_button_1         = 'ICON_SYSTEM_OKAY'
+                text_button_2         = '아니오'
+                icon_button_2         = 'ICON_SYSTEM_CANCEL'
+                default_button        = '1'
+                display_cancel_button = ''
+                start_column          = 25
+                start_row             = 6
+              IMPORTING
+                answer                = lv_answer
+              EXCEPTIONS
+                OTHERS                = 1.
+            IF lv_answer = 1. "데이터를 생성하시겠습니까 ? =&gt; 예 !
+              "헤더 먼저 저장하고, 유효성 검사/데이터가 잘 저장되었는지 확인 후, 아이템 저장. 만약에 헤더 O, 아이템 X면 모두 롤백되게 ! 그리고 메시지 : 저장 실패 등등 뜨게 !
+              "그리고, 넘버레인지 부여해서 생산계획번호 넣어주어야 함 ! 헤더랑 아이템 둘다 !
+              "그리고 위엣처럼 데이터 생성한다음에, 생산계획 헤더- 판매계획 실행여부 필드를 0에서 1로 바꿔주어야 함. 판매계획이 생산계획으로 넘어갔다는 의미.
+              "그리고 나도 판매계획 조회할 때, 즉 생산계획 생성할 때, 판매계획 실행여부 1인애들은 안보이게 바꿔주어야 함 !
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*판매계획 헤더의 판매계획 실행여부를 0 -&gt; 1 로 바꿔주는 과정</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+              "GT_DISPLAY4-PPLANNO 정보(임시로 SPLANNO 숫자부분만 부여한 상태)에서 SPLANNO 정보를 뽑아와서, 같은 SPLANNO를 가지고 있는 판매계획 헤더를 뽑는다.
+              "그 판매계획을 루프돌면서 GT_SD070에 판매계획 실행여부를 0-&gt;1로 바꾸면서 넣는다. 인덱스는 같음. GT_DISPLAY4(생산계획 헤더)는 판매계획 헤더와 1:1 관계로 만들어지므로.
+
+              DATA : LV_DISPLAY4-PPLANNO TYPE C LENGTH 15. "LV_DISPLAY4-PPLANNO 이거였는데, 유니코드 워닝 때문에 바꿈
+
+
+
+              LOOP AT GT_DISPLAY4 INTO GS_DISPLAY4.
+
+                CLEAR LV_DISPLAY4-PPLANNO.
+
+                CONCATENATE '%' GS_DISPLAY4-PPLANNO '%' INTO LV_DISPLAY4-PPLANNO.
+
+<font color ="#0000FF">*                "하 왜 계속 첫번째 루프때는 셀렉트 타면서 판매계획이 GT070에 잘 들어가는데, 두번째에서는 셀렉트 입구만 들어가고 왜 넘길까 ?</font>
+                 "원인 =&gt; SELECT ~ INTO 는 자체적으로 루프타면서 조건에 맞는 값들을 한 번에 INTO 뒤의 테이블로 넣어 주는 구조임. 루프 안에 셀렉트를 썻다고 해도 기입은 한 번만 된다고 생각하자 !
+                 "해결 =&gt; SELECT ~ APPENDING 은 한 번에 조건에 맞는 값들을 한 번씩 넣어 주는 구조. 결과적으로 루프 안에서 WHERE의 조건이 달라지는 동적 SELECT를 써야 할 때 필요함 !
+
+<font color ="#0000FF">*                SELECT *</font>
+<font color ="#0000FF">*                  FROM ZBBT_SD070</font>
+<font color ="#0000FF">*                  WHERE SPLANNO LIKE @LV_DISPLAY4-PPLANNO</font>
+<font color ="#0000FF">*                  INTO CORRESPONDING FIELDS OF TABLE @GT_SD070.</font>
+
+                  SELECT *
+                  FROM ZBBT_SD070
+                  WHERE SPLANNO LIKE @LV_DISPLAY4-PPLANNO
+                  APPENDING CORRESPONDING FIELDS OF TABLE @GT_SD070.
+
+              ENDLOOP.
+
+              LOOP AT GT_SD070 INTO GS_SD070.
+                GS_SD070-SPLANYN = 1.
+                GS_SD070-UPDATE_DT = SY-DATUM.
+                GS_SD070-UPDATE_TM = SY-TIMLO.
+                GS_SD070-UUSER     = SY-UNAME.
+                MODIFY GT_SD070 FROM GS_SD070.
+              ENDLOOP.
+
+"DB에 업로드하는거는 사실 위의 루프문타도 되기는 한디....일단 아래 빼놓자 혹시 모르니껜.
+
+              LOOP AT GT_SD070 INTO GS_SD070.
+                MODIFY ZBBT_SD070 FROM GS_SD070.
+              ENDLOOP.
+
+              CLEAR GS_SD070.
+              CLEAR GT_SD070.
+
+
+
+
+
+
+
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*생산계획 헤더 업로드 과정</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+
+              LOOP AT gt_display4 INTO gs_display4.
+                PERFORM get_pplanno USING gv_pplanno.
+
+                gs_display4-EMPNO = GV_EMPNO.
+
+                gs_display4-pplanno = gv_pplanno.
+                gs_display4-ppsuripdate = sy-datum.
+                MODIFY gt_display4 FROM gs_display4.
+
+              ENDLOOP.
+
+
+<font color ="#0000FF">*              INSERT zbbt_pp020 FROM TABLE gt_display4. "헤더 정보 업로드. "이거 루핑돌면서 한줄한줄 넣은게 아닌게 문제인듯</font>
+               LOOP AT GT_DISPLAY4 INTO GS_DISPLAY4.
+<font color ="#0000FF">*                 INSERT ZBBT_PP020 FROM GS_DISPLAY4.</font>
+<font color ="#0000FF">*                 INSERT GS_DISPLAY4 INTO TABLE ZBBT_PP020.</font>
+                 INSERT INTO ZBBT_PP020 VALUES GS_DISPLAY4.
+               ENDLOOP.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*생산계획 아이템 업로드 과정</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+                IF SY-SUBRC = 0. "헤더 정보 저장에 성공하면,
+
+                  LOOP AT GT_PP030 INTO GS_PP030.
+                    GS_PP030-PPLANNO = GV_PPLANNO.
+                    MODIFY GT_PP030 FROM GS_PP030.
+                  ENDLOOP.
+
+<font color ="#0000FF">*                  INSERT ZBBT_PP030 FROM TABLE GT_PP030. "아이템 정보 업로드</font>
+                  LOOP AT GT_PP030 INTO GS_PP030.
+<font color ="#0000FF">*                     INSERT GS_PP030 INTO TABLE ZBBT_PP030. " 이거 루프 안에 넣는걸로 바꿈</font>
+                      INSERT INTO ZBBT_PP030 VALUES GS_PP030.
+                  ENDLOOP.
+
+                  CLEAR gt_display4.
+
+                  "업로드 완료하고, 첫화면으로 강제로 돌아가는 기능.
+                  "데이터 다시 가져오고,
+                  "PAI 다시 강제로 타게해야함
+<font color ="#0000FF">*                  PERFORM GET_DATA2.</font>
+<font color ="#0000FF">*                  PERFORM MAKE_DATA2.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*                  CALL METHOD cl_gui_cfw=&gt;set_new_ok_code</font>
+<font color ="#0000FF">*                    EXPORTING</font>
+<font color ="#0000FF">*                      new_code = 'NEWCODE'.</font>
+<font color ="#0000FF">*                  PERFORM refresh_grid.</font>
+
+
+                ELSE. "헤더 정보 저장에 실패하면,
+
+                ENDIF.
+
+
+
+            ELSEIF lv_answer = 2. "데이터를 생성하시겠습니까 ? =&gt; 아뇹 !
+
+            ENDIF.
+
+
+          ELSE.
+            MESSAGE i029. "이거 메시지 한개 이상의 행을 선택하세요로 바꿔야함 !
+
+          ENDIF.
+
+
+        WHEN 'FCODE2'.
+          MESSAGE i005. "데이터 저장을 취소했습니다
+        WHEN OTHERS.
+      ENDCASE.
+
+
+    WHEN 'MOVE'.
+
+    WHEN 'DELETE_PP'.
+      PERFORM DELETE_DATA.
+      LOOP AT GT_INDEX INTO GS_INDEX.
+<font color ="#0000FF">*          READ TABLE gt_bom_header INTO gs_bom_header INDEX gs_index.</font>
+      ENDLOOP.
+
+
+  ENDCASE.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form TOOLBAR2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toolbar2  USING    pc_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  DATA : ls_button TYPE stb_button.
+
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+<font color ="#0000FF">*  CLEAR ls_button.</font>
+<font color ="#0000FF">*  ls_button-function = 'DELETE'.</font>
+<font color ="#0000FF">*  ls_button-quickinfo = '임시 생산계획 삭제'.</font>
+<font color ="#0000FF">*  ls_button-icon      = icon_delete_row.</font>
+<font color ="#0000FF">*  ls_button-text = '삭제'.</font>
+<font color ="#0000FF">*  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.</font>
+
+  CLEAR ls_button.
+  ls_button-function = 'CLEAR'.
+  ls_button-quickinfo = '초기화'.
+  ls_button-icon      = icon_delete_row.
+  ls_button-text = '초기화'.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+  CLEAR ls_button.
+  ls_button-function = 'UPLOAD'.
+  ls_button-quickinfo = '임시 생산계획 업로드'.
+  ls_button-icon      = icon_EXPAND.
+  ls_button-text = '반영'.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+<font color ="#0000FF">*  CLEAR ls_button.</font>
+<font color ="#0000FF">*  ls_button-function = 'MOVE'.</font>
+<font color ="#0000FF">*  ls_button-quickinfo = '생산계획 조회 화면으로 이동'.</font>
+<font color ="#0000FF">*  ls_button-icon      = icon_NEXT_OBJECT.</font>
+<font color ="#0000FF">*  ls_button-text = '생산계획조회'.</font>
+<font color ="#0000FF">*  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_HANDLER4</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_handler4 .
+
+  CREATE OBJECT go_handler_toolbar2.
+  SET HANDLER go_handler_toolbar2-&gt;handle_toolbar2 FOR go_alv_grid3.
+
+  CREATE OBJECT go_handler_user_command.
+  SET HANDLER go_handler_user_command-&gt;handle_user_command FOR go_alv_grid3.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form UPLOAD_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM upload_data .
+
+<font color ="#0000FF">*DATA : LS_PP020 TYPE ZBBT_PP020.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  MOVE-CORRESPONDING GS_DISPLAY4 TO LS_PP020.</font>
+<font color ="#0000FF">*  MODIFY ZBBT_PP020 FROM LS_PP020.</font>
+
+ENDFORM.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_DATA_ITEM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data_item .
+
+  DATA : lt_pp030 LIKE gt_pp030.
+  DATA : ls_pp030 LIKE gs_pp030.
+  DATA : lv_splanno TYPE c LENGTH 15.
+
+  " row index를 통해 얻어진 판매계획번호에 해당되는 데이터를 ZBBT_SD080 에서 가져온다.
+
+  " 생산계획 헤더에 만들어진 생산계획번호를 아이템 테이블의 계획번호로 활용한다. (gv_pplanno)
+
+  " GT_ZBBT_SD080 를 loop 돌리며 GT_ZBBT_PP030 append 한다.
+  SELECT itemno matno quantity unit INTO CORRESPONDING FIELDS OF TABLE lt_pp030
+    FROM zbbt_sd080
+    WHERE splanno EQ gs_display2-splanno.
+
+
+
+  LOOP AT lt_pp030 INTO ls_pp030.
+
+    lv_splanno = gs_display2-splanno+4(9).
+<font color ="#0000FF">*        GV_SPLANNO = GS_DISPLAY2-SPLANNO+4(9).</font>
+
+
+
+
+
+<font color ="#0000FF">*        ls_pp030-pplanno = gv_pplanno.</font>
+<font color ="#0000FF">*        ls_pp030-pplanno = GS_DISPLAY2-SPLANNO.</font>
+
+    ls_pp030-pplanno = lv_splanno.
+<font color ="#0000FF">*        ls_pp030-pplanno = GV_SPLANNO.</font>
+    ls_pp030-create_dt = sy-datum.
+    ls_pp030-create_tm = sy-timlo.
+    ls_pp030-cuser = sy-uname.
+    MODIFY lt_pp030 FROM ls_pp030.
+  ENDLOOP. "여기까지 하면 LT_PP030에 아이템 정보들 다 들어옴. 정확히, 내가 선택한 로우의 헤더를 기반으로 아이템들이 들어온거. 헤더 : 아이템 관계는 1 : N 관계이므로, 헤더 로우 숫자보다 많은 게 당연함 !
+
+<font color ="#0000FF">*      MODIFY TABLE GT_PP030 FROM LT_PP030.</font>
+  APPEND LINES OF lt_pp030 TO gt_pp030. "GT_PP030에 업로드할 아이템 정보들 다 들어감.
+
+
+
+  gv_splanno = lv_splanno.
+
+
+<font color ="#0000FF">*</font>
+
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DELETE_ITEM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM delete_item USING p_sdtopp_num.
+
+  DATA : lt_pp030_delete TYPE TABLE OF zbbt_pp030.
+  DATA : ls_pp030_delete TYPE zbbt_pp030,
+         ls_pp030        TYPE zbbt_pp030.
+<font color ="#0000FF">*  DATA : LV_SPLANNO TYPE C LENGTH 15.</font>
+
+  CLEAR : ls_pp030_delete, lt_pp030_delete.
+
+
+  LOOP AT gt_pp030 INTO ls_pp030.
+<font color ="#0000FF">*    IF ls_pp030-pplanno eq gs_display4-pplanno. " 방금바꾼것</font>
+<font color ="#0000FF">*    IF ls_pp030-pplanno eq GV_splanno.</font>
+<font color ="#0000FF">*    IF ls_pp030-pplanno eq p_pplanno. "제일 마지막</font>
+    IF ls_pp030-pplanno EQ p_sdtopp_num.
+      MOVE-CORRESPONDING ls_pp030 TO ls_pp030_delete.
+<font color ="#0000FF">*      modify lt_pp030_delete from ls_pp030_delete.</font>
+      APPEND ls_pp030_delete TO  lt_pp030_delete.
+    ENDIF.
+  ENDLOOP.
+
+  CLEAR: ls_pp030_delete.
+
+<font color ="#0000FF">*  SELECT * FROM gt_pp030 INTO CORRESPONDING FIELDS OF TABLE lt_pp030_delete</font>
+<font color ="#0000FF">*    WHERE pplanno EQ p_pplanno.</font>
+
+  IF lt_pp030_delete IS NOT INITIAL.
+    LOOP AT lt_pp030_delete INTO ls_pp030_delete.
+      DELETE gt_pp030 WHERE pplanno EQ ls_pp030_delete-pplanno.
+    ENDLOOP.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form TOOLBAR3</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toolbar3  USING    pc_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  DATA : ls_button TYPE stb_button.
+
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+  CLEAR ls_button.
+  ls_button-function = 'DELETE_PP'.
+  ls_button-quickinfo = '생산계획 삭제'.
+  ls_button-icon      = icon_delete_row.
+  ls_button-text = '생산계획 삭제'.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+<font color ="#0000FF">*  CLEAR ls_button.</font>
+<font color ="#0000FF">*  ls_button-function = 'MODIFY_PP'.</font>
+<font color ="#0000FF">*  ls_button-quickinfo = '생산계획 수정'.</font>
+<font color ="#0000FF">*  ls_button-icon      = icon_EXPAND.</font>
+<font color ="#0000FF">*  ls_button-text = '생산계획 수정'.</font>
+<font color ="#0000FF">*  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_handler5</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_handler5 .
+CREATE OBJECT go_handler_toolbar3.
+  SET HANDLER go_handler_toolbar3-&gt;handle_toolbar3 FOR go_grid0.
+
+  CREATE OBJECT go_handler_user_command2.
+  SET HANDLER go_handler_user_command2-&gt;handle_user_command FOR go_grid0.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form USER_COMMAND2</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&      --&gt; GV_ROWID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command2  USING    pv_ucomm TYPE sy-ucomm
+                            pt_rowid TYPE lvc_t_roid.
+
+  DATA : lv_answer.
+
+  CASE pv_ucomm.
+    WHEN 'DELETE_PP'.
+      MESSAGE I001.
+    WHEN 'MODIFY_PP'.
+      MESSAGE I001.
+    WHEN OTHERS.
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DELETE_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM delete_data .
+
+  DATA : lv_answer.
+  DATA : LV_PPLANNO  TYPE ZBBT_PP030-PPLANNO.
+
+  CALL METHOD go_grid0-&gt;get_selected_rows
+    IMPORTING
+      et_index_rows = gt_index.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+            EXPORTING
+              titlebar              = '생산계획 삭제'
+<font color ="#0000FF">*             DIAGNOSE_OBJECT       = ' '</font>
+              text_question         = '정말 생산계획을 삭제하시겠습니까? [네] 버튼을 누르시면 헤더와 아이템 정보 모두 삭제됩니다.'
+              text_button_1         = '네'
+              icon_button_1         = 'ICON_SYSTEM_OKAY'
+              text_button_2         = '아니오'
+              icon_button_2         = 'ICON_SYSTEM_CANCEL'
+              default_button        = '1'
+              display_cancel_button = ''
+<font color ="#0000FF">*             USERDEFINED_F1_HELP   = ' '</font>
+              start_column          = 25
+              start_row             = 6
+<font color ="#0000FF">*             POPUP_TYPE            =</font>
+<font color ="#0000FF">*             IV_QUICKINFO_BUTTON_1 = ' '</font>
+<font color ="#0000FF">*             IV_QUICKINFO_BUTTON_2 = ' '</font>
+            IMPORTING
+              answer                = lv_answer
+<font color ="#0000FF">*       TABLES</font>
+<font color ="#0000FF">*             PARAMETER             =</font>
+            EXCEPTIONS
+<font color ="#0000FF">*             TEXT_NOT_FOUND        = 1</font>
+              OTHERS                = 1.
+
+         IF lv_answer = 1.
+<font color ="#0000FF">*           LOOP AT GT_INDEX INTO GS_INDEX.</font>
+<font color ="#0000FF">*             READ TABLE GS_DISPLAY0 INDEX GS_INDEX.</font>
+<font color ="#0000FF">*           ENDLOOP.</font>
+<font color ="#0000FF">*           READ TABLE GS_DISPLAY0 INTO LS_DEL_DISPLAY0 INDEX ps_row_no-row_id.</font>
+           LOOP AT GT_INDEX INTO GS_INDEX.
+             READ TABLE GT_DISPLAY0 INTO GS_DISPLAY0 INDEX GS_INDEX.
+             IF GS_DISPLAY0-PPLANYN EQ 1.
+               MESSAGE I144.
+             ELSE.
+           LOOP AT GT_INDEX INTO GS_INDEX.
+                READ TABLE GT_DISPLAY0 INTO GS_DISPLAY0 INDEX GS_INDEX.
+                LV_PPLANNO = GS_DISPLAY0-PPLANNO.
+                DELETE FROM ZBBT_PP020 WHERE PPLANNO EQ GS_DISPLAY0-PPLANNO.
+                DELETE FROM ZBBT_PP030 WHERE PPLANNO EQ LV_PPLANNO.
+           ENDLOOP.
+
+
+             ENDIF.
+
+           ENDLOOP.
+<font color ="#0000FF">*           LOOP AT GT_INDEX INTO GS_INDEX.</font>
+<font color ="#0000FF">*                READ TABLE GT_DISPLAY0 INTO GS_DISPLAY0 INDEX GS_INDEX.</font>
+<font color ="#0000FF">*                LV_PPLANNO = GS_DISPLAY0-PPLANNO.</font>
+<font color ="#0000FF">*                DELETE FROM ZBBT_PP020 WHERE PPLANNO EQ GS_DISPLAY0-PPLANNO.</font>
+<font color ="#0000FF">*                DELETE FROM ZBBT_PP030 WHERE PPLANNO EQ LV_PPLANNO.</font>
+<font color ="#0000FF">*           ENDLOOP.</font>
+
+
+          ELSE.
+
+          ENDIF.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout5</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout5 .
+  gs_layout5-grid_title = '판매 계획 상세'.
+  gs_layout5-sel_mode = 'A'.
+  gs_layout5-zebra = 'X'.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

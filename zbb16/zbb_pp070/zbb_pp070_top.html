@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_PP070_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_PP070_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_PP070_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_PP070_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT zbb_pp070 MESSAGE-ID zbb_msg.
+
+<font color ="#0000FF">*"--ABAP</font>
+TABLES : sdyn_conn, sscrfields, zbbt_mm020, zbbt_pp010,
+         zbbt_pp020, zbbt_pp030, zbbt_pp060,
+         zbbt_pp040.
+
+TYPES : BEGIN OF ty_prdord,
+          porderno        TYPE zbbt_pp060-porderno,
+          plantno         TYPE zbbt_pp060-plantno,
+          plantnm         TYPE zbbt_pp010-plantnm,
+          matno           TYPE zbbt_pp060-matno,
+          matnm           TYPE zbbt_mm020-matnm,
+          pplanno         TYPE zbbt_pp060-pplanno,
+          pordwdat        TYPE zbbt_pp060-pordwdat,
+          empno           TYPE zbbt_pp060-empno,
+          pordcdat        TYPE zbbt_pp060-pordcdat,
+          poutput         TYPE zbbt_pp060-poutput,
+          unit            TYPE zbbt_pp060-unit,
+          price           TYPE zbbt_pp060-price,
+          currency        TYPE zbbt_pp060-currency,
+          pordflag        TYPE zbbt_pp060-pordflag,
+          pordftxt        TYPE dd07t-ddtext,
+          bomno           TYPE zbbt_pp060-bomno,
+          orstatus        TYPE zbbt_pp060-orstatus,
+          orstattxt       TYPE dd07t-ddtext,
+          rej_txt         TYPE zbbt_pp060-rej_txt,
+          create_dt       TYPE zbbt_pp060-create_dt,
+          create_tm       TYPE zbbt_pp060-create_tm,
+          cuser           TYPE zbbt_pp060-cuser,
+          update_dt       TYPE zbbt_pp060-update_dt,
+          update_tm       TYPE zbbt_pp060-update_tm,
+          uuser           TYPE zbbt_pp060-uuser,
+          color           TYPE c LENGTH 4,
+          light           TYPE c LENGTH 1,
+          approval_porder TYPE c LENGTH 10, " 버튼
+          it_cell_style   TYPE lvc_t_styl,  " button(스타일)- itab 형태
+
+        END OF ty_prdord.
+
+
+DATA : gt_prdord TYPE TABLE OF ty_prdord,
+       gs_prdord TYPE ty_prdord.
+
+DATA : gt_pp060 TYPE TABLE OF zbbt_pp060,
+       gs_pp060 TYPE zbbt_pp060.
+
+DATA : gv_last_date  TYPE dats,   "해당월 마지막 날
+       gv_last_month TYPE dats.  "전월 1일
+
+CLASS : lcl_event_handler DEFINITION DEFERRED.
+DATA : go_handler TYPE REF TO LCL_event_handler. "참조변수
+
+DATA : gv_date TYPE dats.
+
+"--Screen
+DATA : ok_code  TYPE sy-ucomm,
+       ok_code2 TYPE sy-ucomm,
+       ok_code3 TYPE sy-ucomm.
+
+" 기간별 자동승인(다건 처리)
+DATA : gv_pord_l TYPE zbbt_pp060-pordwdat,
+       gv_pord_h TYPE zbbt_pp060-pordwdat.
+
+"수동으로 Listbox 구현
+DATA : name TYPE vrm_id.
+DATA : list  TYPE vrm_values,
+       value LIKE LINE OF list.
+
+DATA : go_cont TYPE REF TO cl_gui_custom_container,
+       go_grid TYPE REF TO cl_gui_alv_grid.
+
+DATA : gs_layout  TYPE lvc_s_layo.
+
+DATA : gs_row  TYPE lvc_s_row,
+       gt_rows TYPE lvc_t_row.
+
+DATA : gt_sorting TYPE lvc_t_sort,
+       gs_sorting TYPE lvc_s_sort.
+
+DATA : gt_field_cat TYPE lvc_t_fcat,
+       gs_field_cat TYPE lvc_s_fcat.
+
+DATA : gs_cell_style TYPE lvc_s_styl.
+
+DATA : r_count TYPE string VALUE '0',
+       y_count TYPE string VALUE '0',
+       g_count TYPE string VALUE '0'.
+
+DATA : gv_count TYPE num.  "미처리건 수
+
+DATA : gv_tabix TYPE sy-tabix. "행 번호
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  SELECT-OPTIONS : so_ptno FOR zbbt_pp020-plantno NO INTERVALS NO-EXTENSION DEFAULT 'BYP' .     "공장번호
+  SELECT-OPTIONS : so_pono FOR zbbt_pp060-porderno  .                "생산오더번호
+  SELECT-OPTIONS : so_podt  FOR zbbt_pp060-pordwdat .                "생산오더작성일자
+
+  SELECTION-SCREEN BEGIN OF LINE .
+
+    SELECTION-SCREEN COMMENT (20) TEXT-003 .
+
+    SELECTION-SCREEN POSITION 33.
+    PARAMETERS : pa_st0 RADIOBUTTON GROUP r2 DEFAULT 'X' .
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_st0.
+
+    SELECTION-SCREEN POSITION 52.
+    PARAMETERS : pa_st1 RADIOBUTTON GROUP r2.
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_st1.
+
+    SELECTION-SCREEN POSITION 73.
+    PARAMETERS : pa_st2 RADIOBUTTON GROUP r2 .
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_st2.
+
+  SELECTION-SCREEN END OF LINE.
+
+  SELECTION-SCREEN COMMENT /1(79) value1 MODIF ID cot.
+  SELECTION-SCREEN COMMENT /1(79) value2 MODIF ID cot.   "미처리 건수
+
+SELECTION-SCREEN END OF BLOCK b1.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

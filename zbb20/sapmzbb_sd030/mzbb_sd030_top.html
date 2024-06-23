@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD030_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD030_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_SD030_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include MZBB_SD030_TOP                           - Module Pool      SAPMZBB_SD030</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+PROGRAM SAPMZBB_SD030 MESSAGE-ID ZBB_MSG.
+
+TABLES: ZBBT_SD070, ZBBT_SD080, ZBBT_MM020, ZBBT_HR020.
+
+DATA : OK_CODE  TYPE SY-UCOMM,
+       OK_CODE2 TYPE SY-UCOMM,
+       OK_CODE3 TYPE SY-UCOMM,
+       OK_CODE4 TYPE SY-UCOMM,
+       OK_CODE5 TYPE SY-UCOMM,
+       DYNNR    TYPE SY-DYNNR. "화면 지정 번호
+
+DATA : ICON      TYPE ICONS-TEXT, "아이콘 텍스트 @01@
+       ICON_NAME TYPE STRING. "아이콘 사용 시 아이콘 이름 green_light
+
+" 선택한 행 불러오는 변수
+DATA : GS_ROW  TYPE LVC_S_ROW,
+       GT_ROWS TYPE LVC_T_ROW.
+
+DATA : GT_DATA TYPE TABLE OF ZBBT_SD070,
+       GS_DATA TYPE ZBBT_SD070.
+
+" 판매계획 Header
+TYPES : BEGIN OF ZTY_LINE.
+          include structure <a href ="zbbt_sd070/dictionary-zbbt_sd070.html">ZBBT_SD070</a>.
+TYPES :   LIGHT TYPE C LENGTH 1,    "신호등
+          COLOR TYPE C LENGTH 4,
+<font color ="#0000FF">*          celltab TYPE lvc_t_styl, " 셀별 스타일</font>
+        END OF ZTY_LINE.
+DATA : GS_SD070 TYPE ZTY_LINE,
+       GT_SD070 TYPE TABLE OF ZTY_LINE.
+
+" 판매계획 Item
+TYPES : BEGIN OF ZTY_LINE_2.
+          include structure <a href ="zbbt_sd080/dictionary-zbbt_sd080.html">ZBBT_SD080</a>.
+TYPES :   LIGHT TYPE C LENGTH 1,    "신호등
+          COLOR TYPE C LENGTH 4,
+          MATNM TYPE ZBBT_MM020-MATNM,
+<font color ="#0000FF">*          celltab TYPE lvc_t_styl, " 셀별 스타일</font>
+        END OF ZTY_LINE_2.
+DATA : GS_SD080 TYPE ZTY_LINE_2,
+       GT_SD080 TYPE TABLE OF ZTY_LINE_2.
+
+" Screen 0200 Item MATNM
+DATA : GT_MM020 TYPE TABLE OF ZBBT_MM020,
+       GS_MM020 LIKE LINE OF GT_MM020.
+
+" Screen 0200 삭제 확인용
+DATA : GT_DEL  TYPE TABLE OF ZTY_LINE,
+       GT_DEL2 TYPE TABLE OF ZTY_LINE_2.
+
+
+" 레이아웃 요소
+DATA: GV_R1 VALUE 'X',  " 판매 계획
+      GV_R2.            " 판매 상세계획
+
+" RANGES 변수
+RANGES : GR_SPLANNO FOR ZBBT_SD070-SPLANNO,
+         GR_SPDATE  FOR ZBBT_SD070-SPLANDATE,
+         GR_SPLANY  FOR ZBBT_SD070-SPLANY,
+         GR_SPLANM  FOR ZBBT_SD070-SPLANM.
+
+" 검색(입력값) 변수_SCREEN 200
+DATA : GV_SPLANNO  TYPE ZBBT_SD070-SPLANNO,    " 판매계획번호
+       GV_SPDATE_L TYPE ZBBT_SD070-SPLANDATE,  " 계획수립일자 LOW
+       GV_SPDATE_H TYPE ZBBT_SD070-SPLANDATE,  " 계획수립일자 HIGH
+       GV_SPLANY_L TYPE ZBBT_SD070-SPLANY,     " 계획년도 LOW
+       GV_SPLANY_H TYPE ZBBT_SD070-SPLANY,     " 계획년도 HIGH
+       GV_SPLANM_L TYPE ZBBT_SD070-SPLANM,     " 계획월   LOW
+       GV_SPLANM_H TYPE ZBBT_SD070-SPLANM.     " 계획월   HIGH
+<font color ="#0000FF">** SCREEN LAYOUT에서 'ZBBT_SD070-SPLANDATE' 식으로 설정했다면</font>
+<font color ="#0000FF">** HIGH만 'ZBBT_SD070-SPLANDATE_H' 식으로 INPUT FIELD 추가하면 됨!</font>
+<font color ="#0000FF">** 나는 그냥 LAYOUT에서 이름 다 GV_SPLANM_L 식으로 설정함!</font>
+
+
+" UPDATE Toolbar 변수
+DATA : GS_LINE TYPE ZBBT_SD070,
+       GT_LINE TYPE TABLE OF ZBBT_SD070.
+" Create (Item) Toolbar 변수
+DATA : GS_LINE2 TYPE ZBBT_SD080,
+       GT_LINE2 TYPE TABLE OF ZBBT_SD080.
+
+" POPUP_TO_CONFIRM : ANSWER 변수
+DATA: GV_ANSWER.
+
+" ALV
+" Screen 100
+DATA: GO_CONT1 TYPE REF TO CL_GUI_CONTAINER,
+      GO_CONT2 TYPE REF TO CL_GUI_CONTAINER,
+      " Screen 200
+      GO_CONT3 TYPE REF TO CL_GUI_CONTAINER,
+      GO_CONT4 TYPE REF TO CL_GUI_CONTAINER.
+
+" Screen 100
+DATA: GO_GRID1      TYPE REF TO CL_GUI_ALV_GRID,
+      GO_GRID2      TYPE REF TO CL_GUI_ALV_GRID,
+      GO_CONTAINER1 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_SPLIT1     TYPE REF TO CL_GUI_SPLITTER_CONTAINER,
+      " Screen 200
+      GO_GRID3      TYPE REF TO CL_GUI_ALV_GRID,
+      GO_GRID4      TYPE REF TO CL_GUI_ALV_GRID,
+      GO_CONTAINER2 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_SPLIT2     TYPE REF TO CL_GUI_SPLITTER_CONTAINER.
+
+
+" layout을 위해 필요한 data
+" Screen 100
+DATA: GS_LAYOUT1 TYPE LVC_S_LAYO,
+      GS_LAYOUT2 TYPE LVC_S_LAYO,
+      " Screen 200
+      GS_LAYOUT3 TYPE LVC_S_LAYO,
+      GS_LAYOUT4 TYPE LVC_S_LAYO.
+
+
+" Sort
+" Screen 100
+DATA : GT_SORT1 TYPE LVC_T_SORT,
+       GS_SORT1 TYPE LVC_S_SORT,
+       GT_SORT2 TYPE LVC_T_SORT,
+       GS_SORT2 TYPE LVC_S_SORT,
+       " Screen 200
+       GT_SORT3 TYPE LVC_T_SORT,
+       GS_SORT3 TYPE LVC_S_SORT,
+       GT_SORT4 TYPE LVC_T_SORT,
+       GS_SORT4 TYPE LVC_S_SORT.
+
+
+" Field catalog
+" Screen 100
+DATA : GS_FCAT1 TYPE LVC_S_FCAT,
+       GT_FCAT1 TYPE LVC_T_FCAT,
+       GS_FCAT2 TYPE LVC_S_FCAT,
+       GT_FCAT2 TYPE LVC_T_FCAT,
+       " Screen 200
+       GS_FCAT3 TYPE LVC_S_FCAT,
+       GT_FCAT3 TYPE LVC_T_FCAT,
+       GS_FCAT4 TYPE LVC_S_FCAT,
+       GT_FCAT4 TYPE LVC_T_FCAT.
+
+" Class
+CLASS: LCL_EVENT_HANDLER DEFINITION DEFERRED.
+DATA: GO_HANDLER TYPE REF TO LCL_EVENT_HANDLER.
+
+" Toolbar 제외용
+DATA : GT_EXCLUDE_FUNC TYPE UI_FUNCTIONS.
+
+" Excel
+DATA : PA_FILE LIKE RLGRAP-FILENAME VALUE 'C:\'.
+DATA: GO_APPLICATION TYPE OLE2_OBJECT,
+      GO_BOOKS       TYPE OLE2_OBJECT,
+      GO_WBOOK       TYPE OLE2_OBJECT,
+      GO_BOOK        TYPE OLE2_OBJECT,
+      GO_SHEETS      TYPE OLE2_OBJECT,
+      GO_SHEET       TYPE OLE2_OBJECT,
+      GO_CELLS       TYPE OLE2_OBJECT,
+      GO_CELL        TYPE OLE2_OBJECT,
+      GO_RANGE       TYPE OLE2_OBJECT,
+      GO_FONT        TYPE OLE2_OBJECT,
+      GO_ROW         TYPE OLE2_OBJECT,
+      GV_PATH        TYPE STRING,
+      GV_DIRECTORY   TYPE STRING,
+      GV_NUM         TYPE I.
+
+DATA : BEGIN OF GS_EXCEL,
+         SPLANNO   LIKE ZBBT_SD070-SPLANNO,
+         SPLANDATE LIKE ZBBT_SD070-SPLANDATE,
+         SPLANY    LIKE ZBBT_SD070-SPLANY,
+         SPLANM    LIKE ZBBT_SD070-SPLANM,
+         SPLANTXT  LIKE ZBBT_SD070-SPLANTXT,
+         EMPNO     LIKE ZBBT_HR020-EMPNO,
+         MATNO     LIKE ZBBT_SD080-MATNO,
+         MATNM     LIKE ZBBT_MM020-MATNM,
+         QUANTITY  LIKE ZBBT_SD080-QUANTITY,
+         UNIT      LIKE ZBBT_SD080-UNIT,
+       END OF GS_EXCEL.
+
+
+DATA : GT_EXCEL LIKE TABLE OF GS_EXCEL.
+
+FIELD-SYMBOLS : &lt;FS&gt; TYPE ANY.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

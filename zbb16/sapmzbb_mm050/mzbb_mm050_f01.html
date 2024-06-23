@@ -1,0 +1,1630 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM050_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM050_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_MM050_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM050_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object .
+  " custom container 사용
+  IF go_custom IS INITIAL.
+
+    " 메인 컨테이너 선언 (custom)
+    CREATE OBJECT go_custom
+      EXPORTING
+        container_name = 'MY_CONT' "100번 스크린에 생성한 이름
+      EXCEPTIONS
+        OTHERS         = 1.
+
+    " 화면 분할 컨테이너 선언
+    CREATE OBJECT go_split
+      EXPORTING
+        parent  = go_custom
+        rows    = 2
+        columns = 1.
+
+    " 각 분할 영역 컨테이너에 맵핑
+    CALL METHOD go_split-&gt;get_container   "메소드 호출
+      EXPORTING
+        row       = 1
+        column    = 1
+      RECEIVING
+        container = go_cont1.  "grid를 담을 영역
+
+    CALL METHOD go_split-&gt;get_container
+      EXPORTING
+        row       = 2
+        column    = 1
+      RECEIVING
+        container = go_cont2.
+
+    go_cont1 = go_split-&gt;get_container( row = 1 column = 1 ).
+    go_cont2 = go_split-&gt;get_container( row = 2 column = 1 ).
+
+    "  각 컨테이너에 GRID 맵핑
+    PERFORM create_cont_grid.
+
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+  "--상단 layout
+  gs_layout-grid_title = '생산계획리스트_헤더'.
+  gs_layout-sel_mode = 'A'.
+  gs_layout-zebra = 'X'.
+
+  "light 추가
+  gs_layout-excp_fname = 'LIGHT'.
+  gs_layout-excp_led = 'X'.
+
+  "line color 추가
+  gs_layout-info_fname = 'COLOR'.
+
+  "--하단 layout
+  gs_layout2-grid_title = '생산계획리스트_아이템'.
+  gs_layout2-sel_mode = 'A'.
+  gs_layout2-zebra = 'X'.
+
+  "light 추가
+  gs_layout2-excp_fname = 'LIGHT'.
+  gs_layout2-excp_led = 'X'.
+
+  "line color 추가
+  gs_layout2-info_fname = 'COLOR'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_handler .
+  CREATE OBJECT go_handler.
+  SET HANDLER : go_handler-&gt;handle_double_click FOR go_grid1,
+                go_handler-&gt;handle_hotspot_click FOR go_grid2,
+                go_handler-&gt;handle_toolbar  FOR go_grid2,
+                go_handler-&gt;handle_user_command FOR go_grid2.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sorting</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sorting .
+  " 생산계획리스트_헤더
+  gs_sorting-spos = '1'.
+  gs_sorting-fieldname = 'PPLANNO'.
+  APPEND gs_sorting TO gt_sorting.
+  CLEAR gs_sorting.
+
+  " 생산계획리스트_아이템
+  gs_sorting2-spos = '1'.
+  gs_sorting2-fieldname = 'PPLANNO'.
+  APPEND gs_sorting2 TO gt_sorting2.
+  CLEAR gs_sorting2.
+
+  gs_sorting2-spos = '2'.
+  gs_sorting2-fieldname = 'ITEMNO'.
+  APPEND gs_sorting2 TO gt_sorting2.
+  CLEAR gs_sorting2.
+
+
+  " Bom 정보
+  gs_sorting3-spos = '1'.
+  gs_sorting3-fieldname = 'ITEMNO'.
+  APPEND gs_sorting3 TO gt_sorting3.
+  CLEAR gs_sorting3.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_cat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_cat .
+  CLEAR : gt_field_cat, gt_field_cat2.
+
+  "생산계획리스트_헤더
+  gs_field_cat-fieldname = 'LIGHT'.
+  gs_field_cat-coltext   = '상태'.
+  gs_field_cat-key = 'X'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PPLANNO'.
+  gs_field_cat-coltext  = '생산계획번호'.
+  gs_field_cat-outputlen = 10.
+  gs_field_cat-col_pos   = 1.
+  gs_field_cat-just   = 'C'.
+  gs_field_cat-key = 'X'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PPSURIPDATE'.
+  gs_field_cat-coltext  = '계획수립일자'.
+  gs_field_cat-outputlen = 10.
+  gs_field_cat-col_pos   = 2.
+  gs_field_cat-just   = 'C'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PPLANDATE'.
+  gs_field_cat-coltext  = '생산계획일'.
+  gs_field_cat-outputlen = 10.
+  gs_field_cat-col_pos   = 3.
+  gs_field_cat-just   = 'C'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PPLANTXT'.
+  gs_field_cat-coltext  = '생산계획설명'.
+  gs_field_cat-outputlen = 52.
+  gs_field_cat-col_pos   = 4.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PPLANYN'.
+  gs_field_cat-coltext  = '생산계획 실행여부'.
+  gs_field_cat-outputlen = 10.
+  gs_field_cat-col_pos   = 5.
+  gs_field_cat-no_out = 'X'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'PLANTNO'.
+  gs_field_cat-coltext  = '공장번호'.
+  gs_field_cat-outputlen = 5.
+  gs_field_cat-col_pos   = 6.
+  gs_field_cat-just   = 'C'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+  gs_field_cat-fieldname = 'EMPNO'.
+  gs_field_cat-coltext  = '직원번호'.
+  gs_field_cat-outputlen = 10.
+  gs_field_cat-col_pos   = 7.
+  gs_field_cat-no_out = 'X'.
+  APPEND gs_field_cat TO gt_field_cat.
+  CLEAR gs_field_cat.
+
+
+  "생산계획리스트_아이템
+  gs_field_cat2-fieldname = 'LIGHT'.
+  gs_field_cat2-coltext   = '상태'.
+  gs_field_cat2-key = 'X'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2
+  .
+  gs_field_cat2-fieldname = 'PPLANNO'.
+  gs_field_cat2-coltext  = '생산계획번호'.
+  gs_field_cat2-outputlen = 10.
+  gs_field_cat2-col_pos   = 1.
+  gs_field_cat2-just   = 'C'.
+  gs_field_cat2-key = 'X'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'ITEMNO'.
+  gs_field_cat2-coltext  = '순번'.
+  gs_field_cat2-outputlen = 3.
+  gs_field_cat2-col_pos   = 2.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'QUANTITY'.
+  gs_field_cat2-coltext  = '계획수량'.
+  gs_field_cat2-qfieldname = 'UNIT'.
+  gs_field_cat2-outputlen = 5.
+  gs_field_cat2-col_pos   = 5.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'UNIT'.
+  gs_field_cat2-coltext  = '단위'.
+  gs_field_cat2-outputlen = 3.
+  gs_field_cat2-col_pos   = 6.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'MATNO'.
+  gs_field_cat2-coltext  = '자재번호'.
+  gs_field_cat2-outputlen = 6.
+  gs_field_cat2-col_pos   = 3.
+  gs_field_cat2-just   = 'C'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'MATNM'.
+  gs_field_cat2-coltext  = '자재명'.
+  gs_field_cat2-outputlen = 20.
+  gs_field_cat2-col_pos   = 4.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'BOMNO'.
+  gs_field_cat2-coltext  = 'BOM번호'.
+  gs_field_cat2-outputlen = 6.
+  gs_field_cat2-col_pos   = 7.
+  gs_field_cat2-just   = 'C'.
+  gs_field_cat2-hotspot = 'X'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'CHECK'.
+  gs_field_cat2-no_out = 'X'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'MRPYN'.
+  gs_field_cat2-no_out = 'X'.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+
+  gs_field_cat2-fieldname = 'MRPTXT'.
+  gs_field_cat2-coltext  = '실행'.
+  gs_field_cat2-just   = 'C'.
+  gs_field_cat2-outputlen = 4.
+  gs_field_cat2-col_pos   = 7.
+  APPEND gs_field_cat2 TO gt_field_cat2.
+  CLEAR gs_field_cat2.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_table</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_table .
+<font color ="#0000FF">*  3. Grid에 데이터 출력</font>
+  CALL METHOD go_grid1-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout
+    CHANGING
+      it_outtab       = gt_planord_h
+      it_fieldcatalog = gt_field_cat
+      it_sort         = gt_sorting
+    EXCEPTIONS
+      OTHERS          = 1.
+
+  CALL METHOD go_grid2-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout2
+    CHANGING
+      it_outtab       = gt_planord_i
+      it_fieldcatalog = gt_field_cat2
+      it_sort         = gt_sorting2
+    EXCEPTIONS
+      OTHERS          = 1.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0100</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command_0100 .
+  CASE ok_code.
+    WHEN 'BACK'.           "뒤로가기
+      LEAVE PROGRAM.
+
+    WHEN 'FC1'.             "조회
+      CLEAR : gt_planord_h, gt_planord_i.
+      PERFORM get_data.
+      PERFORM make_data.
+      IF gt_planord_h IS INITIAL.
+        MESSAGE i029.
+      ENDIF.
+
+
+    WHEN 'REFRESH'.         "초기화
+      CLEAR : pplanno_l, pplanno_h, month.
+      CLEAR gt_planord_h.
+      CLEAR gt_planord_i.
+      CALL METHOD go_grid1-&gt;refresh_table_display( ).
+      CALL METHOD go_grid2-&gt;refresh_table_display( ).
+      MESSAGE s086.  "초기화가 완료되었습니다.
+
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exit</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM exit .
+  CASE ok_code.
+    WHEN 'CANCEL'.
+      LEAVE SCREEN.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM init_screen .
+  "화면 기본값 셋팅
+  DATA : lv_date TYPE dats.
+  lv_date = sy-datum(6).
+  zbbt_pp020-plantno = 'BYP'.
+
+  IF month IS INITIAL.
+    month = lv_date.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_cont_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_cont_grid .
+  " 100번 container
+  CREATE OBJECT go_grid1
+    EXPORTING
+      i_parent = go_cont1.
+
+  CREATE OBJECT go_grid2
+    EXPORTING
+      i_parent = go_cont2.
+<font color ="#0000FF">*      i_appl_events = 'X'.</font>
+
+  " 200번 container
+  CREATE OBJECT go_grid1_c
+    EXPORTING
+      i_parent = go_cont1_c.
+
+  CREATE OBJECT go_grid2_c
+    EXPORTING
+      i_parent = go_cont2_c.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+  DATA : lv_start_date TYPE dats,
+         lv_end_date   TYPE dats.
+
+  "선택된 월의 1일
+  CONCATENATE month '01' INTO lv_start_date.
+
+  "선택된 월의 마지막 일자
+  CALL FUNCTION 'RP_LAST_DAY_OF_MONTHS'
+    EXPORTING
+      day_in            = lv_start_date
+    IMPORTING
+      last_day_of_month = lv_end_date
+    EXCEPTIONS
+      day_in_no_date    = 1
+      OTHERS            = 2.
+
+  PERFORM get_ranges.
+
+  " 생산계획리스트 헤더
+  SELECT *
+      INTO CORRESPONDING FIELDS OF TABLE gt_planord_h
+      FROM zbbt_pp020
+      WHERE ppsuripdate &gt;= lv_start_date
+        AND ppsuripdate &lt;= lv_end_date
+        AND pplanno IN rt_pplanno
+        AND plantno EQ zbbt_pp020-plantno
+        AND pplanyn EQ 0.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_ranges</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_ranges .
+  REFRESH rt_pplanno.
+  IF pplanno_h IS NOT INITIAL AND pplanno_l IS NOT INITIAL.
+    rs_pplanno-sign = 'I'.
+    rs_pplanno-option = 'BT'.
+    rs_pplanno-low = pplanno_l.
+    rs_pplanno-high = pplanno_h.
+    APPEND rs_pplanno TO rt_pplanno.
+    CLEAR rs_pplanno.
+  ELSEIF pplanno_h IS NOT INITIAL AND pplanno_l IS INITIAL.
+    rs_pplanno-sign = 'I'.
+    rs_pplanno-option = 'BT'.
+    rs_pplanno-low = ' '.
+    rs_pplanno-high = pplanno_h.
+    APPEND rs_pplanno TO rt_pplanno.
+    CLEAR rs_pplanno.
+  ELSEIF pplanno_h IS INITIAL AND pplanno_l IS NOT INITIAL.
+    rs_pplanno-sign = 'I'.
+    rs_pplanno-option = 'EQ'.
+    rs_pplanno-low = pplanno_l.
+    rs_pplanno-high = pplanno_l.
+    APPEND rs_pplanno TO rt_pplanno.
+    CLEAR rs_pplanno.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form double_click</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM double_click  USING    ps_row_no TYPE lvc_s_roid.
+  DATA : lv_text      TYPE dd07t-ddtext,
+         lv_value(10) TYPE c.
+  READ TABLE gt_planord_h INTO gs_planord_h
+                          INDEX ps_row_no-row_id.
+
+  "생산계획설명 txt -&gt; 구매의뢰에 사용
+  gv_pplantxt = gs_planord_h-pplantxt.
+
+  SELECT a~pplanno, a~itemno, a~matno, c~matnm, a~quantity, a~unit, d~bomno, a~mrpyn
+    INTO CORRESPONDING FIELDS OF TABLE @gt_planord_i
+    FROM zbbt_pp030 AS a INNER JOIN zbbt_pp020 AS b
+      ON a~pplanno = b~pplanno
+    INNER JOIN zbbt_mm020 AS c
+      ON a~matno = c~matno
+    INNER JOIN zbbt_pp040 AS d
+    ON a~matno = d~matno
+    WHERE a~pplanno = @gs_planord_h-pplanno.
+
+  LOOP AT gt_planord_i INTO gs_planord_i.
+    "생산계획아이템 신호등을 위한 로직
+<font color ="#0000FF">*    PERFORM get_purquan.</font>
+
+    "MRP 실행여부 txt 넣기
+    lv_value = gs_planord_i-mrpyn.  "DOMAIN VALUE값
+    CALL FUNCTION 'STF4_GET_DOMAIN_VALUE_TEXT'
+      EXPORTING
+        iv_domname    = 'ZBBD_MRPYN' "도메인 이름
+        iv_value      = lv_value "도메인 VALUE 값
+      IMPORTING
+        ev_value_text = lv_text. "도메인 텍스트 받아올 변수
+    gs_planord_i-mrptxt = lv_text.
+
+    IF gs_planord_i-mrpyn EQ '1'.
+      gs_planord_i-light = '3'.
+    ELSE.
+      gs_planord_i-light = '2'.
+    ENDIF.
+    MODIFY gt_planord_i FROM gs_planord_i TRANSPORTING mrptxt light.
+  ENDLOOP.
+
+
+  IF sy-subrc = 0.
+<font color ="#0000FF">*    CALL METHOD go_grid2-&gt;refresh_table_display( ).</font>
+    PERFORM display_table.
+    CONCATENATE '생산계획번호 ' gs_planord_h-pplanno '가 조회되었습니다.' INTO lv_text RESPECTING BLANKS.
+    MESSAGE s000 WITH lv_text.
+
+  ELSEIF gt_planord_i IS INITIAL.
+    CALL METHOD go_grid2-&gt;refresh_table_display( ).
+    MESSAGE s029 DISPLAY LIKE 'E'. "데이터가 존재하지 않습니다.
+
+  ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form hotspot_click</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW_ID</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN_ID</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM hotspot_click  USING    pv_row_id TYPE lvc_s_row
+                             pv_column_id TYPE lvc_s_col.
+
+  CLEAR : gv_bomno, gv_matnm, gv_matno.
+
+  DATA : lv_answer,
+         lv_quest TYPE string.
+
+  READ TABLE gt_planord_i INTO gs_planord_i
+                        INDEX pv_row_id-index.
+
+  gv_bomno = gs_planord_i-bomno.
+  gv_matnm = gs_planord_i-matnm.
+  gv_matno = gs_planord_i-matno.
+
+  CONCATENATE gv_matnm '의 BOM을 조회 하시겠습니까?'  INTO lv_quest. " RESPECTING BLANKS.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      titlebar              = 'BOM 조회'
+      text_question         = lv_quest
+      text_button_1         = '네'
+      icon_button_1         = 'ICON_SYSTEM_OKAY'
+      text_button_2         = '아니오'
+      icon_button_2         = 'ICON_SYSTEM_CANCEL'
+      default_button        = '1'
+      display_cancel_button = ' '
+      start_column          = 25
+      start_row             = 15
+    IMPORTING
+      answer                = lv_answer
+    EXCEPTIONS
+      OTHERS                = 1.
+
+  IF lv_answer EQ 1 .  "네 선택
+    PERFORM get_hotspot.
+    CALL SCREEN 110 STARTING AT 10  10. "BOM 조회 팝업
+  ELSE.
+    MESSAGE s000 WITH 'BOM 조회를 취소했습니다.'.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object_b</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object_b .
+  IF go_cont_b IS INITIAL.
+
+    " 1) custom control area 에 container 를 link
+    CREATE OBJECT go_cont_b
+      EXPORTING
+        container_name = 'MY_CONT2' "100번 스크린에 생성한 이름
+      EXCEPTIONS
+        OTHERS         = 1.
+    IF sy-subrc &lt;&gt; 0.
+
+    ENDIF.
+
+    " 2) container 에 grid 를 link.
+    CREATE OBJECT go_grid_b
+      EXPORTING
+        i_parent = go_cont_b
+      EXCEPTIONS
+        OTHERS   = 1.
+    IF sy-subrc &lt;&gt; 0.
+
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid .
+
+  CALL METHOD go_grid_b-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout3
+    CHANGING
+      it_outtab       = gt_bom
+      it_fieldcatalog = gt_field_cat3
+      it_sort         = gt_sorting3.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE i007.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_hotspot</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_hotspot .
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_bom
+    FROM zbbt_pp050 AS a INNER JOIN zbbt_mm020 AS b
+    ON a~matno = b~matno
+    WHERE a~bomno = gv_bomno.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_cat_b</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_cat_b .
+  CLEAR : gt_field_cat3.
+
+  "BOM 리스트
+  gs_field_cat3-fieldname = 'ITEMNO'.
+  gs_field_cat3-coltext  = '순번'.
+  gs_field_cat3-outputlen = 3.
+  gs_field_cat3-col_pos   = 1.
+  gs_field_cat3-just   = 'C'.
+  APPEND gs_field_cat3 TO gt_field_cat3.
+  CLEAR gs_field_cat3.
+
+  gs_field_cat3-fieldname = 'MATNO'.
+  gs_field_cat3-coltext  = '자재번호'.
+  gs_field_cat3-outputlen = 6.
+  gs_field_cat3-col_pos   = 2.
+  gs_field_cat3-just   = 'C'.
+  APPEND gs_field_cat3 TO gt_field_cat3.
+  CLEAR gs_field_cat3.
+
+  gs_field_cat3-fieldname = 'MATNM'.
+  gs_field_cat3-coltext  = '자재명'.
+  gs_field_cat3-outputlen = 20.
+  gs_field_cat3-col_pos   = 3.
+  APPEND gs_field_cat3 TO gt_field_cat3.
+  CLEAR gs_field_cat3.
+
+  gs_field_cat3-fieldname = 'QUANTITY'.
+  gs_field_cat3-coltext  = '수량'.
+  gs_field_cat3-outputlen = 5.
+  gs_field_cat3-col_pos   = 4.
+  gs_field_cat3-qfieldname = 'UNIT'.
+  APPEND gs_field_cat3 TO gt_field_cat3.
+  CLEAR gs_field_cat3.
+
+  gs_field_cat3-fieldname = 'UNIT'.
+  gs_field_cat3-coltext  = '단위'.
+  gs_field_cat3-outputlen = 3.
+  gs_field_cat3-col_pos   = 5.
+  gs_field_cat3-just   = 'C'.
+  APPEND gs_field_cat3 TO gt_field_cat3.
+  CLEAR gs_field_cat3.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout_b</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout_b .
+  DATA : lv_title TYPE string.
+
+  CONCATENATE gv_matnm '(' gv_matno ')의 자재명세서' INTO lv_title.
+
+  "--DIALOG layout
+  gs_layout3-grid_title = lv_title.
+  gs_layout3-zebra = 'X'.
+
+  CLEAR : lv_title.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM toolbar  USING pc_object TYPE REF TO cl_alv_event_toolbar_set.
+
+  DATA : ls_button TYPE stb_button.
+
+  " 툴바 라인 추가
+  ls_button-butn_type = 3.
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+
+  " 툴바 버튼 추가
+  CLEAR ls_button.
+  ls_button-function = 'CALC_MAT'.
+  ls_button-quickinfo = '자재소요량 계산'.
+  ls_button-icon      = icon_calculation.
+  ls_button-text = '  자재소요량 계산 '.
+
+  IF gs_planord_h-light EQ '3'.
+    ls_button-disabled = 'X'.
+  ENDIF.
+
+  INSERT ls_button INTO TABLE pc_object-&gt;mt_toolbar.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&      --&gt; LV_ROW</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM user_command  USING      pe_ucomm TYPE sy-ucomm.
+  DATA : lv_text   TYPE string,
+         lv_title  TYPE string,
+         lv_answer.
+
+  DATA : lt_row_id TYPE lvc_t_roid,
+         ls_row_id TYPE lvc_s_roid.
+
+  CASE pe_ucomm.
+    WHEN 'CALC_MAT'.
+      "선택 행 가져오기
+      CALL METHOD go_grid2-&gt;get_selected_rows
+        IMPORTING
+          et_row_no = lt_row_id.
+
+      IF lines( lt_row_id ) = 0.
+        MESSAGE i000 WITH '행을 선택하세요.'.
+        EXIT.
+
+      ELSEIF lines( lt_row_id ) = 1.
+        LOOP AT lt_row_id INTO ls_row_id.
+          READ TABLE gt_planord_i INTO gs_planord_i INDEX ls_row_id-row_id.
+          gv_row_id = ls_row_id-row_id.
+
+          IF gs_planord_i-mrpyn EQ '1'.
+            CONCATENATE gs_planord_i-matno '은 이미 실행된 건으로 계산할 수 없습니다.' INTO lv_text.
+            MESSAGE i000 WITH lv_text.
+<font color ="#0000FF">*            lv_title = '자재소요량 조회'.</font>
+            LEAVE SCREEN.
+          ELSE.
+            CONCATENATE gs_planord_i-matno '의 자재 소요량을 계산하시겠습니까?' INTO lv_text.
+            lv_title = '자재소요량 계산'.
+          ENDIF.
+        ENDLOOP.
+
+        CALL FUNCTION 'POPUP_TO_CONFIRM'
+          EXPORTING
+            titlebar              = lv_title
+            text_question         = lv_text
+            text_button_1         = '네'
+            icon_button_1         = 'ICON_SYSTEM_OKAY'
+            text_button_2         = '아니오'
+            icon_button_2         = 'ICON_SYSTEM_CANCEL'
+            default_button        = '1'
+            display_cancel_button = ' '
+            start_column          = 25
+            start_row             = 15
+          IMPORTING
+            answer                = lv_answer
+          EXCEPTIONS
+            OTHERS                = 1.
+
+        IF lv_answer EQ 1.
+          "소요자재
+          SELECT a~pplanno, a~itemno, a~matno, c~matnm, a~quantity, a~unit, d~bomno, a~mrpyn
+             INTO CORRESPONDING FIELDS OF TABLE @gt_calc_h
+            FROM zbbt_pp030 AS a INNER JOIN zbbt_pp020 AS b
+              ON a~pplanno = b~pplanno
+            INNER JOIN zbbt_mm020 AS c
+              ON a~matno = c~matno
+            INNER JOIN zbbt_pp040 AS d
+              ON a~matno = d~matno
+            WHERE a~pplanno = @gs_planord_i-pplanno
+              AND a~itemno = @gs_planord_i-itemno.
+
+          " 소요자재 상세
+          READ TABLE gt_calc_h INTO gs_calc_h INDEX 1.
+          IF sy-subrc EQ 0.
+            gs_calc_h-check = '1'.
+            MODIFY gt_calc_h FROM gs_calc_h INDEX 1.
+          ENDIF.
+
+          SELECT * INTO CORRESPONDING FIELDS OF TABLE gt_calc_i
+            FROM zbbt_pp050 AS a INNER JOIN zbbt_mm020 AS b
+              ON a~matno = b~matno
+           WHERE a~bomno = gs_calc_h-bomno.
+
+          " 구매 필요 수량 계산
+          PERFORM get_calc_i.
+
+          "구매요청할 건이 없다면 실행여부 1로 바꿈
+          IF gv_ccount EQ 0.
+            LOOP AT gt_planord_i INTO gs_planord_i WHERE matno = gs_planord_i-matno.
+              gs_planord_i-mrpyn = '1'.
+              MODIFY gt_planord_i FROM gs_planord_i TRANSPORTING mrpyn.
+            ENDLOOP.
+            MOVE-CORRESPONDING gt_planord_i TO gt_pp030.
+            MODIFY zbbt_pp030 FROM TABLE gt_pp030.
+          ENDIF.
+
+          " 다시 계산 :전체 Refresh 하고 다시 PBO타게 함
+          IF go_grid1_c IS BOUND AND go_grid2_c IS BOUND.
+            CALL METHOD go_grid1_c-&gt;free( ).
+            FREE go_grid1_c.
+            CALL METHOD go_grid2_c-&gt;free( ).
+            FREE go_grid2_c.
+          ENDIF.
+          IF go_custom_c IS BOUND.
+            CALL METHOD go_custom_c-&gt;free( ).
+            FREE go_custom_c.
+          ENDIF.
+<font color ="#0000FF">*       다시 PBO 타도록 함 (Call screen 대신)</font>
+          CALL METHOD cl_gui_cfw=&gt;set_new_ok_code
+            EXPORTING
+              new_code = 'NEWCODE'.
+
+          CALL SCREEN 200.
+
+          " 계산 후 돌아오고 : 전체 Refresh 하고 다시 PBO타게 함
+          IF go_grid2 IS BOUND AND go_grid1 IS BOUND.
+            CALL METHOD go_grid1-&gt;free( ).
+            FREE go_grid1.
+            CALL METHOD go_grid2-&gt;free( ).
+            FREE go_grid2.
+          ENDIF.
+          IF go_custom IS BOUND.
+            CALL METHOD go_custom-&gt;free( ).
+            FREE go_custom.
+          ENDIF.
+          PERFORM get_data.
+          PERFORM make_data.
+          PERFORM make_data_i.
+
+<font color ="#0000FF">*       다시 PBO 타도록 함 (Call screen 대신)</font>
+          CALL METHOD cl_gui_cfw=&gt;set_new_ok_code
+            EXPORTING
+              new_code = 'NEWCODE'.
+
+          MESSAGE s000 WITH 'MRP 실행이 완료되었습니다.'.
+
+        ELSE.
+          MESSAGE s000 WITH '자재소요량 계산을 취소했습니다.'.
+        ENDIF.
+      ELSE.
+        MESSAGE i000 WITH '하나의 행만을 선택하세요.'.
+      ENDIF.
+
+  ENDCASE.
+
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object_c</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_object_c .
+  " custom container 사용
+  IF go_custom_c IS INITIAL.
+
+    " 메인 컨테이너 선언 (custom)
+    CREATE OBJECT go_custom_c
+      EXPORTING
+        container_name = 'MY_CONT_C' "100번 스크린에 생성한 이름
+      EXCEPTIONS
+        OTHERS         = 1.
+
+    " 화면 분할 컨테이너 선언
+    CREATE OBJECT go_split_c
+      EXPORTING
+        parent  = go_custom_c
+        rows    = 2
+        columns = 1.
+
+    " 각 분할 영역 컨테이너에 맵핑
+    CALL METHOD go_split_c-&gt;get_container   "메소드 호출
+      EXPORTING
+        row       = 1
+        column    = 1
+      RECEIVING
+        container = go_cont1_c.  "grid를 담을 영역
+
+    CALL METHOD go_split_c-&gt;get_container
+      EXPORTING
+        row       = 2
+        column    = 1
+      RECEIVING
+        container = go_cont2_c.
+
+    go_cont1_c = go_split_c-&gt;get_container( row = 1 column = 1 ).
+    go_cont2_c = go_split_c-&gt;get_container( row = 2 column = 1 ).
+
+    "  각 컨테이너에 GRID 맵핑
+    PERFORM create_cont_grid.
+
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout_c</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout_c .
+  "--상단 layout
+  gs_layout1_c-grid_title = '소요자재'.
+  gs_layout1_c-sel_mode = 'A'.
+  gs_layout1_c-zebra = 'X'.
+
+
+  "--하단 layout
+  gs_layout2_c-grid_title = '소요자재 상세'.
+  gs_layout2_c-sel_mode = 'A'.
+  gs_layout2_c-zebra = 'X'.
+
+  "light 추가
+  gs_layout2_c-excp_fname = 'LIGHT'.
+  gs_layout2_c-excp_led = 'X'.
+
+  "Cell Color 추가
+  gs_layout2_c-ctab_fname = 'IT_COL'.
+
+  "line color 추가
+  gs_layout2_c-info_fname = 'COLOR'.
+
+  LOOP AT gt_calc_i INTO gs_calc_i.
+    gs_colfield-fname = 'PUR_QUANTITY'.
+    gs_colfield-color-col = '5'.
+    gs_colfield-color-int = '0'.
+    gs_colfield-color-inv = '0'.
+    gs_colfield-nokeycol = 'X'.
+    APPEND gs_colfield TO gs_calc_i-it_col.
+    MODIFY gt_calc_i FROM gs_calc_i TRANSPORTING it_col.
+  ENDLOOP.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sorting_c</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sorting_c .
+
+  "소요자재 상세
+  gs_sorting2_c-spos = '1'.
+  gs_sorting2_c-fieldname = 'ITEMNO'.
+  APPEND gs_sorting2_c TO gt_sorting2_c.
+  CLEAR gs_sorting2_c.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_table_c</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_table_c .
+<font color ="#0000FF">*  3. Grid에 데이터 출력</font>
+  CALL METHOD go_grid1_c-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout1_c
+    CHANGING
+      it_outtab       = gt_calc_h
+      it_fieldcatalog = gt_field_cat1_c
+      it_sort         = gt_sorting1_c
+    EXCEPTIONS
+      OTHERS          = 1.
+
+  CALL METHOD go_grid2_c-&gt;set_table_for_first_display
+    EXPORTING
+      is_layout       = gs_layout2_c
+    CHANGING
+      it_outtab       = gt_calc_i
+      it_fieldcatalog = gt_field_cat2_c
+      it_sort         = gt_sorting2_c
+    EXCEPTIONS
+      OTHERS          = 1.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_cat_c</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_field_cat_c .
+  CLEAR : gt_field_cat1_c, gt_field_cat2_c.
+  "생산계획리스트_아이템
+  gs_field_cat1_c-fieldname = 'LIGHT'.
+  gs_field_cat1_c-coltext   = '상태'.
+  gs_field_cat1_c-no_out   = 'X'.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'PPLANNO'.
+  gs_field_cat1_c-coltext  = '생산계획번호'.
+  gs_field_cat1_c-outputlen = 10.
+  gs_field_cat1_c-col_pos   = 1.
+  gs_field_cat1_c-just   = 'C'.
+  gs_field_cat1_c-key = 'X'.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'ITEMNO'.
+  gs_field_cat1_c-coltext  = '순번'.
+  gs_field_cat1_c-outputlen = 3.
+  gs_field_cat1_c-col_pos   = 2.
+  gs_field_cat1_c-no_out   = 'X'.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'QUANTITY'.
+  gs_field_cat1_c-coltext  = '계획수량'.
+  gs_field_cat1_c-qfieldname = 'UNIT'.
+  gs_field_cat1_c-outputlen = 6.
+  gs_field_cat1_c-col_pos   = 5.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'UNIT'.
+  gs_field_cat1_c-coltext  = '단위'.
+  gs_field_cat1_c-outputlen = 3.
+  gs_field_cat1_c-col_pos   = 6.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'MATNO'.
+  gs_field_cat1_c-coltext  = '자재번호'.
+  gs_field_cat1_c-outputlen = 6.
+  gs_field_cat1_c-col_pos   = 3.
+  gs_field_cat1_c-key = 'X'.
+  gs_field_cat1_c-just   = 'C'.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'MATNM'.
+  gs_field_cat1_c-coltext  = '자재명'.
+  gs_field_cat1_c-outputlen = 20.
+  gs_field_cat1_c-col_pos   = 4.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'BOMNO'.
+  gs_field_cat1_c-coltext  = 'BOM번호'.
+  gs_field_cat1_c-outputlen = 6.
+  gs_field_cat1_c-col_pos   = 7.
+  gs_field_cat1_c-just   = 'C'.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  gs_field_cat1_c-fieldname = 'CHECK'.
+  gs_field_cat1_c-coltext  = '계산'.
+  gs_field_cat1_c-checkbox = 'X'.
+  gs_field_cat1_c-outputlen = 3.
+  gs_field_cat1_c-col_pos   = 8.
+  APPEND gs_field_cat1_c TO gt_field_cat1_c.
+  CLEAR gs_field_cat1_c.
+
+  " 소요자재 상세
+  gs_field_cat2_c-fieldname = 'LIGHT'.
+  gs_field_cat2_c-coltext   = '상태'.
+  gs_field_cat2_c-key = 'X'.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'ITEMNO'.
+  gs_field_cat2_c-coltext  = '순번'.
+  gs_field_cat2_c-outputlen = 3.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'MATNO'.
+  gs_field_cat2_c-coltext  = '자재번호'.
+  gs_field_cat2_c-outputlen = 6.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'MATNM'.
+  gs_field_cat2_c-coltext  = '자재명'.
+  gs_field_cat2_c-outputlen = 20.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'QUANTITY'.
+  gs_field_cat2_c-coltext  = '소요량'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'UNIT'.
+  gs_field_cat2_c-coltext  = '단위'.
+  gs_field_cat2_c-outputlen = 3.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'PUR_QUANTITY'.
+  gs_field_cat2_c-coltext  = '구매요청량'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'CUR_QUANTITY'.
+  gs_field_cat2_c-coltext  = '현재재고'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'GR_QUANTITY'.
+  gs_field_cat2_c-coltext  = '입고예정'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'GI_QUANTITY'.
+  gs_field_cat2_c-coltext  = '출고예정'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+
+  gs_field_cat2_c-fieldname = 'AVA_QUANTITY'.
+  gs_field_cat2_c-coltext  = '가용재고'.
+  gs_field_cat2_c-qfieldname = 'UNIT'.
+  gs_field_cat2_c-outputlen = 8.
+  APPEND gs_field_cat2_c TO gt_field_cat2_c.
+  CLEAR gs_field_cat2_c.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_calc_i</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_calc_i .
+
+  DATA : BEGIN OF ls_matno,
+           bomno   TYPE zbbt_pp040-bomno,
+           poutput TYPE zbbt_pp060-poutput,
+         END OF ls_matno,
+         lt_matno LIKE TABLE OF ls_matno.
+
+  DATA : BEGIN OF ls_rmatno,
+           matno    TYPE zbbt_pp050-matno,
+           quantity TYPE zbbt_pp050-quantity,
+         END OF ls_rmatno,
+         lt_rmatno LIKE TABLE OF ls_rmatno.
+
+  DATA : BEGIN OF ls_giquan,
+           matno    TYPE zbbt_pp050-matno,
+           quantity TYPE  zbbt_pp050-quantity,
+         END OF ls_giquan,
+         lt_giquan LIKE TABLE OF ls_giquan.
+
+  DATA : lv_poutput TYPE zbbt_pp060-poutput.
+
+  CLEAR : gv_ccount.
+
+  LOOP AT gt_calc_i INTO gs_calc_i.
+
+    gs_calc_i-quantity = gs_calc_h-quantity * gs_calc_i-quantity.
+
+<font color ="#0000FF">* 재고현황에서 현재고 가져옴</font>
+    SELECT DISTINCT matno, SUM( quantity ) AS cur_quantity
+        FROM zbbt_mm090
+        WHERE matno EQ @gs_calc_i-matno
+        GROUP BY matno
+        INTO CORRESPONDING FIELDS OF @gs_calc_i.
+    ENDSELECT.
+
+
+
+<font color ="#0000FF">* 구매요청 테이블에서 입고 예정 수량 가져옴</font>
+    PERFORM get_gr_quantity.
+<font color ="#0000FF">*    SELECT DISTINCT matno, SUM( quantity ) AS gr_quantity</font>
+<font color ="#0000FF">*        FROM zbbt_mm040</font>
+<font color ="#0000FF">*        WHERE matno EQ @gs_calc_i-matno</font>
+<font color ="#0000FF">*          AND reqyn &lt;&gt; '2'               "승인, 대기건</font>
+<font color ="#0000FF">*        GROUP BY matno</font>
+<font color ="#0000FF">*        INTO CORRESPONDING FIELDS OF @gs_calc_i.</font>
+<font color ="#0000FF">*    ENDSELECT.</font>
+
+
+
+<font color ="#0000FF">* 생산오더 테이블에서 출고 예정 수량 가져옴</font>
+    "생산계획, 생산오더에서 완제품 matno를 가져옴. (생산오더 생성 단계, 승인건, MRP 실행)
+    SELECT DISTINCT bomno, SUM( poutput ) AS poutput
+      FROM zbbt_pp060 AS a RIGHT OUTER JOIN zbbt_pp030 AS b
+      ON a~pplanno = b~pplanno
+      WHERE ( pordflag EQ '0'        "생산오더 생성 단계(완료 전)
+        AND orstatus EQ '1' )        "오더 승인
+        OR ( b~mrpyn EQ '1'          "MRP 실행
+        AND pordflag IS INITIAL )    "생산오더 생성 전
+      GROUP BY bomno
+      INTO CORRESPONDING FIELDS OF TABLE @lt_matno.    "&lt;- bom 리스트 한번에 가져옴
+
+    "BOM 리스트를 Loop하여 원재료 합계만을 구함
+    LOOP AT lt_matno INTO ls_matno.
+      lv_poutput = ls_matno-poutput.
+
+      " 1-1)원자재번호, 기본 수량 가져오기 - 아이템
+      SELECT matno, quantity
+        FROM zbbt_pp050
+        INTO CORRESPONDING FIELDS OF TABLE @lt_rmatno
+        WHERE bomno = @ls_matno-bomno.                 "&lt;-단건 BFG0008의 원재료 및 기본 수량 가져옴
+      " 1-2) bom 개수를 곱해 필요 수량 계산 - 아이템
+      LOOP AT lt_rmatno INTO ls_rmatno.                "&lt;-BFG0008 원재료 필요 수량 수정
+        ls_rmatno-quantity = ls_rmatno-quantity *  lv_poutput.
+        MODIFY lt_rmatno FROM ls_rmatno TRANSPORTING quantity.
+        MOVE-CORRESPONDING ls_rmatno TO ls_giquan.
+
+        READ TABLE lt_giquan INTO ls_giquan FROM ls_giquan COMPARING matno.
+
+        IF sy-subrc &lt;&gt; 0.
+          APPEND ls_giquan TO lt_giquan.
+        ELSE.
+          ls_giquan-quantity = ls_giquan-quantity + ls_rmatno-quantity.
+          MODIFY lt_giquan FROM ls_giquan TRANSPORTING quantity WHERE matno EQ ls_giquan-matno .
+        ENDIF.
+
+      ENDLOOP.
+    ENDLOOP.
+
+    LOOP AT lt_giquan INTO ls_giquan.
+      IF ls_giquan-matno = gs_calc_i-matno.
+        gs_calc_i-gi_quantity = ls_giquan-quantity.
+      ENDIF.
+    ENDLOOP.
+
+    CLEAR gs_giplaned.
+    READ TABLE gt_giplaned INTO gs_giplaned WITH TABLE KEY gv_matno =  gs_calc_i-matno.
+
+    gs_calc_i-gi_quantity = gs_calc_i-gi_quantity + gs_giplaned-gv_giplaned.
+
+    "가용재고  = 현재고 + 입고예정 - 출고예정(구매발주 넣었고 생산오더 생성 전 수량 포함)
+    gs_calc_i-ava_quantity = gs_calc_i-cur_quantity + gs_calc_i-gr_quantity -  gs_calc_i-gi_quantity .
+
+
+    "구매요청 수량  = (소요수량 + 출고예정 + 안전재고) - (현재고 + 입고예정)
+    gs_calc_i-pur_quantity = ( gs_calc_i-quantity + gs_calc_i-gi_quantity )
+    - ( gs_calc_i-cur_quantity + gs_calc_i-gr_quantity ).
+
+<font color ="#0000FF">* 구매의뢰수량 존재 따른 신호등 추가</font>
+    IF gs_calc_i-pur_quantity &gt; 0.  "구매의뢰수량 존재
+      gs_calc_i-light = '2'.
+      gs_calc_i-color = 'C' && col_total && '00'.
+      gv_ccount = gv_ccount + 1.
+    ELSE.
+      gs_calc_i-light = '3'.
+    ENDIF.
+
+    MODIFY gt_calc_i FROM gs_calc_i.
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_purreqno</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_purreqno .
+  DATA : lv_date  TYPE n LENGTH 6,
+         lv_year  TYPE n LENGTH 2,
+         lv_month TYPE n LENGTH 2,
+         lv_day   TYPE n LENGTH 2.
+
+  DATA : lv_where TYPE c LENGTH 12,
+         lv_num   TYPE n LENGTH 3.
+
+  lv_year = sy-datum+2(2).
+  lv_month = sy-datum+4(2).
+  lv_day = sy-datum+6(2).
+
+  " 오늘 날짜를 구함 ex)240507
+  CONCATENATE lv_year lv_month lv_day INTO lv_date.
+
+  " 문자열 부분일치 검색 위해 (% 사용)
+  CONCATENATE '%' lv_date '%' INTO lv_where.
+
+  " 오늘 날짜가 포함된 오더를 Select
+  " 구매요청번호를 내림차순하여 가장 상단의 건이 가장 마지막 생성건이게 됨.
+  SELECT purreqno
+    FROM zbbt_mm040
+    WHERE purreqno LIKE @lv_where
+    ORDER BY purreqno DESCENDING
+    INTO CORRESPONDING FIELDS OF TABLE @gt_mm040.
+
+  READ TABLE gt_mm040 INTO gs_mm040 INDEX 1.
+
+  IF sy-subrc &lt;&gt; 0.    "오늘 날짜의 구매요청이 존재하지 않는 경우
+    CONCATENATE 'MMQ' sy-datum+2(6) '001' INTO gv_purreqno.
+
+  ELSE.   "오늘 날짜의 구매요청이 존재하는 경우 (+1)
+    lv_num = gs_mm040-purreqno+9(3).
+    lv_num = lv_num + 1.
+    CONCATENATE 'MMQ' sy-datum+2(6) lv_num INTO gv_purreqno.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data .
+  DATA : lt_planord_i TYPE TABLE OF ty_planord30,
+         ls_planord_i TYPE ty_planord30.
+
+  LOOP AT gt_planord_h INTO gs_planord_h.
+
+    SELECT COUNT( pplanno ) AS count
+      FROM zbbt_pp030       "생산계획아이템
+      WHERE pplanno EQ @gs_planord_h-pplanno
+      AND mrpyn IS INITIAL     "mrp 돌리지 않은 건
+      INTO @DATA(lv_mrpyn).
+
+    IF lv_mrpyn EQ 0.        "모든 아이템 mrp 다 돌았다면
+      gs_planord_h-light = '3'.
+    ELSE.
+      gs_planord_h-light = '2'.
+    ENDIF.
+    MODIFY gt_planord_h FROM gs_planord_h TRANSPORTING light.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_purquan</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_purquan .
+<font color ="#0000FF">*  DATA : lt_calc_i TYPE TABLE OF ty_calc,</font>
+<font color ="#0000FF">*         ls_calc_i TYPE ty_calc.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  SELECT * INTO CORRESPONDING FIELDS OF TABLE lt_calc_i</font>
+<font color ="#0000FF">*    FROM zbbt_pp050 AS a INNER JOIN zbbt_mm020 AS b</font>
+<font color ="#0000FF">*     ON a~matno = b~matno</font>
+<font color ="#0000FF">*    WHERE a~bomno = gs_planord_i-bomno.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 구매 필요 수량 계산</font>
+<font color ="#0000FF">*    DATA : BEGIN OF ls_matno,</font>
+<font color ="#0000FF">*             bomno   TYPE zbbt_pp040-bomno,</font>
+<font color ="#0000FF">*             poutput TYPE zbbt_pp060-poutput,</font>
+<font color ="#0000FF">*           END OF ls_matno,</font>
+<font color ="#0000FF">*           lt_matno LIKE TABLE OF ls_matno.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    DATA : BEGIN OF ls_rmatno,</font>
+<font color ="#0000FF">*             matno    TYPE zbbt_pp050-matno,</font>
+<font color ="#0000FF">*             quantity TYPE zbbt_pp050-quantity,</font>
+<font color ="#0000FF">*           END OF ls_rmatno,</font>
+<font color ="#0000FF">*           lt_rmatno LIKE TABLE OF ls_rmatno.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    DATA : BEGIN OF ls_giquan,</font>
+<font color ="#0000FF">*             matno    TYPE zbbt_pp050-matno,</font>
+<font color ="#0000FF">*             quantity TYPE  zbbt_pp050-quantity,</font>
+<font color ="#0000FF">*           END OF ls_giquan,</font>
+<font color ="#0000FF">*           lt_giquan LIKE TABLE OF ls_giquan.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    DATA : lv_poutput TYPE zbbt_pp060-poutput.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    CLEAR : gv_ccount.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    LOOP AT gt_calc_i INTO gs_calc_i.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      gs_calc_i-quantity = gs_calc_h-quantity * gs_calc_i-quantity.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 재고현황에서 현재고 가져옴</font>
+<font color ="#0000FF">*      SELECT DISTINCT matno, SUM( quantity ) AS cur_quantity</font>
+<font color ="#0000FF">*          FROM zbbt_mm090</font>
+<font color ="#0000FF">*          WHERE matno EQ @gs_calc_i-matno</font>
+<font color ="#0000FF">*          GROUP BY matno</font>
+<font color ="#0000FF">*          INTO CORRESPONDING FIELDS OF @gs_calc_i.</font>
+<font color ="#0000FF">*      ENDSELECT.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 구매요청 테이블에서 입고 예정 수량 가져옴</font>
+<font color ="#0000FF">*      SELECT DISTINCT matno, SUM( quantity ) AS gr_quantity</font>
+<font color ="#0000FF">*          FROM zbbt_mm040</font>
+<font color ="#0000FF">*          WHERE matno EQ @gs_calc_i-matno</font>
+<font color ="#0000FF">*            AND reqyn &lt;&gt; '2'               "승인, 대기건</font>
+<font color ="#0000FF">*          GROUP BY matno</font>
+<font color ="#0000FF">*          INTO CORRESPONDING FIELDS OF @gs_calc_i.</font>
+<font color ="#0000FF">*      ENDSELECT.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 생산오더 테이블에서 출고 예정 수량 가져옴</font>
+<font color ="#0000FF">*      "생산오더에서 완제품 matno를 가져옴. (생산오더 생성 단계, 승인된)</font>
+<font color ="#0000FF">*      SELECT DISTINCT bomno, SUM( poutput ) AS poutput</font>
+<font color ="#0000FF">*        FROM zbbt_pp060</font>
+<font color ="#0000FF">*        WHERE pordflag EQ '0'</font>
+<font color ="#0000FF">*          AND orstatus EQ '1'</font>
+<font color ="#0000FF">*        GROUP BY bomno</font>
+<font color ="#0000FF">*        INTO CORRESPONDING FIELDS OF TABLE @lt_matno.    "&lt;- bom 리스트 한번에 가져옴</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*        "테이블을 Loop하여 원재료 합계만을 구함</font>
+<font color ="#0000FF">*        LOOP AT lt_matno INTO ls_matno.</font>
+<font color ="#0000FF">*          lv_poutput = ls_matno-poutput.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          " 1-1)원자재번호, 기본 수량 가져오기 - 아이템</font>
+<font color ="#0000FF">*          SELECT matno, quantity</font>
+<font color ="#0000FF">*            FROM zbbt_pp050</font>
+<font color ="#0000FF">*            INTO CORRESPONDING FIELDS OF TABLE @lt_rmatno</font>
+<font color ="#0000FF">*            WHERE bomno = @ls_matno-bomno.                 "&lt;-단건 BFG0008의 원재료 및 기본 수량 가져옴</font>
+<font color ="#0000FF">*            " 1-2) bom 개수를 곱해 필요 수량 계산 - 아이템</font>
+<font color ="#0000FF">*            LOOP AT lt_rmatno INTO ls_rmatno.                "&lt;-BFG0008 원재료 필요 수량 수정</font>
+<font color ="#0000FF">*              ls_rmatno-quantity = ls_rmatno-quantity *  lv_poutput.</font>
+<font color ="#0000FF">*              MODIFY lt_rmatno FROM ls_rmatno TRANSPORTING quantity.</font>
+<font color ="#0000FF">*              MOVE-CORRESPONDING ls_rmatno TO ls_giquan.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*              READ TABLE lt_giquan INTO ls_giquan FROM ls_giquan COMPARING matno.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*              IF sy-subrc &lt;&gt; 0.</font>
+<font color ="#0000FF">*                APPEND ls_giquan TO lt_giquan.</font>
+<font color ="#0000FF">*              ELSE.</font>
+<font color ="#0000FF">*                ls_giquan-quantity = ls_giquan-quantity + ls_rmatno-quantity.</font>
+<font color ="#0000FF">*                MODIFY lt_giquan FROM ls_giquan TRANSPORTING quantity WHERE matno EQ ls_giquan-matno .</font>
+<font color ="#0000FF">*              ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*            ENDLOOP.</font>
+<font color ="#0000FF">*          ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          LOOP AT lt_giquan INTO ls_giquan.</font>
+<font color ="#0000FF">*            IF ls_giquan-matno = gs_calc_i-matno.</font>
+<font color ="#0000FF">*              gs_calc_i-gi_quantity = ls_giquan-quantity.</font>
+<font color ="#0000FF">*            ENDIF.</font>
+<font color ="#0000FF">*          ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          "가용재고  = 현재고 + 입고예정 - 출고예정</font>
+<font color ="#0000FF">*          gs_calc_i-ava_quantity = gs_calc_i-cur_quantity + gs_calc_i-gr_quantity - gs_calc_i-gi_quantity.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          "구매요청 수량  = (소요수량 + 출고예정 + 안전재고) - (현재고 + 입고예정)</font>
+<font color ="#0000FF">*          gs_calc_i-pur_quantity = ( gs_calc_i-quantity + gs_calc_i-gi_quantity )</font>
+<font color ="#0000FF">*          - ( gs_calc_i-cur_quantity + gs_calc_i-gr_quantity ).</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 구매의뢰수량 존재 따른 신호등 추가</font>
+<font color ="#0000FF">*          IF gs_calc_i-pur_quantity &gt; 0.  "구매의뢰수량 존재</font>
+<font color ="#0000FF">*            gs_calc_i-light = '2'.</font>
+<font color ="#0000FF">*            gs_calc_i-color = 'C' && col_total && '00'.</font>
+<font color ="#0000FF">*            gv_ccount = gv_ccount + 1.</font>
+<font color ="#0000FF">*          ELSE.</font>
+<font color ="#0000FF">*            gs_calc_i-light = '3'.</font>
+<font color ="#0000FF">*          ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*          MODIFY gt_calc_i FROM gs_calc_i.</font>
+<font color ="#0000FF">*        ENDLOOP.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data_i</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM make_data_i .
+  DATA : lv_text      TYPE dd07t-ddtext,
+         lv_value(10) TYPE c.
+  LOOP AT gt_planord_i INTO gs_planord_i.
+    "MRP 실행여부 txt 넣기
+    lv_value = gs_planord_i-mrpyn.  "DOMAIN VALUE값
+    CALL FUNCTION 'STF4_GET_DOMAIN_VALUE_TEXT'
+      EXPORTING
+        iv_domname    = 'ZBBD_MRPYN' "도메인 이름
+        iv_value      = lv_value "도메인 VALUE 값
+      IMPORTING
+        ev_value_text = lv_text. "도메인 텍스트 받아올 변수
+    gs_planord_i-mrptxt = lv_text.
+
+    IF gs_planord_i-mrpyn EQ '1'.
+      gs_planord_i-light = '3'.
+    ELSE.
+      gs_planord_i-light = '2'.
+    ENDIF.
+    MODIFY gt_planord_i FROM gs_planord_i TRANSPORTING mrptxt light.
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_gr_quantity</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_gr_quantity .
+
+  DATA: lv_gr_quantity_mm040 TYPE p DECIMALS 2,
+        lv_gr_quantity_mm050 TYPE p DECIMALS 2,
+        lv_total_gr_quantity TYPE p DECIMALS 2.
+
+<font color ="#0000FF">* 구매요청 테이블에서 입고 예정 수량 가져옴</font>
+  SELECT DISTINCT matno, SUM( quantity ) AS gr_quantity
+      FROM zbbt_mm040
+      WHERE matno EQ @gs_calc_i-matno
+        AND ( reqyn EQ '0'    "대기건
+        AND reqsub EQ '1' )   "확정건
+         OR ( matno EQ @gs_calc_i-matno
+         AND reqsub EQ '0' )   "미확정건
+      GROUP BY matno
+      INTO @DATA(ls_mm040).
+  ENDSELECT.
+  lv_gr_quantity_mm040 = ls_mm040-gr_quantity.
+
+
+<font color ="#0000FF">* 구매오더 테이블에서 입고 예정 수량 가져오기</font>
+  SELECT DISTINCT matno, SUM( quantity ) AS gr_quantity
+    FROM zbbt_mm050
+    WHERE matno = @gs_calc_i-matno
+      AND inyn EQ '0'       "입고가 아직 안된 건
+    GROUP BY matno
+    INTO @DATA(ls_mm050).
+  ENDSELECT.
+
+  lv_gr_quantity_mm050 = ls_mm050-gr_quantity.
+
+<font color ="#0000FF">* 총 입고 예정 수량 계산</font>
+  lv_total_gr_quantity = lv_gr_quantity_mm040 + lv_gr_quantity_mm050.
+
+<font color ="#0000FF">* 결과 구조에 총 입고 예정 수량 저장</font>
+  gs_calc_i-gr_quantity = lv_total_gr_quantity.
+
+
+  CLEAR : ls_mm040, ls_mm050.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

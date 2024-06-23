@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD070_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD070_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD070_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+TABLES : ZBBT_SD070, ZBBT_SD080, ZBBT_MM020, ZBBT_HR020.
+
+DATA : OK_CODE TYPE SY-UCOMM.
+
+TYPE-POOLS : ICON, COL.
+
+DATA : GT_SD070 TYPE TABLE OF ZBBT_SD070,
+       GS_SD070 LIKE LINE OF GT_SD070.
+
+DATA : GT_SD080 TYPE TABLE OF ZBBT_SD080,
+       GS_SD080 LIKE LINE OF GT_SD080.
+
+DATA : GT_MM020 TYPE TABLE OF ZBBT_MM020,
+       GS_MM020 LIKE LINE OF GT_MM020.
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">* DISPLAY0 :</font>
+<font color ="#0000FF">* 검색 직후 상단 그리드에 출력되는 판매계획 헤더 데이터</font>
+DATA : BEGIN OF GS_DISPLAY0,
+         STATUS     LIKE ICON-ID,
+         SPLANNO    LIKE ZBBT_SD070-SPLANNO,
+         SPLANDATE  LIKE ZBBT_SD070-SPLANDATE,
+         SPLANY     LIKE ZBBT_SD070-SPLANY,
+         SPLANM     LIKE ZBBT_SD070-SPLANM,
+         EMPNO      LIKE ZBBT_SD070-EMPNO,
+         SPLANTXT   LIKE ZBBT_SD070-SPLANTXT,
+         SPLANYN    LIKE ZBBT_SD070-SPLANYN,
+
+       END OF GS_DISPLAY0.
+DATA : GT_DISPLAY0 LIKE TABLE OF GS_DISPLAY0.
+
+<font color ="#0000FF">* DISPLAY1 :</font>
+<font color ="#0000FF">* 상단 그리드에서 특정 행 더블클릭 시 하단 그리드에 출력되는</font>
+<font color ="#0000FF">* 판매계획 아이템 데이터</font>
+DATA : BEGIN OF GS_DISPLAY1,
+         SPLANNO  LIKE ZBBT_SD080-SPLANNO,
+         MATNO    LIKE ZBBT_SD080-MATNO,
+         MATNM    LIKE ZBBT_MM020-MATNM,
+         QUANTITY LIKE ZBBT_SD080-QUANTITY,
+         UNIT     LIKE ZBBT_SD080-UNIT,
+       END OF GS_DISPLAY1.
+DATA : GT_DISPLAY1 LIKE TABLE OF GS_DISPLAY1.
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : GS_LAYOUT0 TYPE LVC_S_LAYO.
+DATA : GS_LAYOUT1 TYPE LVC_S_LAYO.
+<font color ="#0000FF">*DATA : GS_LAYOUT2 TYPE LVC_S_LAYO.</font>
+
+<font color ="#0000FF">*DATA : GS_CELL_COLOR0 LIKE LINE OF GS_DISPLAY0-IT_CELL_COLOR.</font>
+
+DATA : GT_FCAT0 TYPE LVC_T_FCAT,
+       GS_FCAT0 TYPE LVC_S_FCAT.
+DATA : GT_FCAT1 TYPE LVC_T_FCAT,
+       GS_FCAT1 TYPE LVC_S_FCAT.
+<font color ="#0000FF">*DATA : GT_FCAT2 TYPE LVC_T_FCAT,</font>
+<font color ="#0000FF">*       GS_FCAT2 TYPE LVC_S_FCAT.</font>
+
+DATA : GT_SORTING_CRITERIA0  TYPE LVC_T_SORT,
+       GS_SORTING_CRITERION0 TYPE LVC_S_SORT.
+DATA : GT_SORTING_CRITERIA1  TYPE LVC_T_SORT,
+       GS_SORTING_CRITERION1 TYPE LVC_S_SORT.
+<font color ="#0000FF">*DATA : GT_SORTING_CRITERIA2  TYPE LVC_T_SORT,</font>
+<font color ="#0000FF">*       GS_SORTING_CRITERION2 TYPE LVC_S_SORT.</font>
+
+DATA : GS_VARI TYPE DISVARIANT,
+       GV_SAVE.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : GO_CONT_DOCK  TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+       GO_CONT_SPLIT TYPE REF TO CL_GUI_SPLITTER_CONTAINER,
+       GO_CONT_TOP   TYPE REF TO CL_GUI_CONTAINER,
+       GO_CONT_BOT   TYPE REF TO CL_GUI_CONTAINER,
+       GO_GRID0      TYPE REF TO CL_GUI_ALV_GRID, " [상단] 판매계획 헤더
+       GO_GRID1      TYPE REF TO CL_GUI_ALV_GRID. " [하단] 판매계획 아이템
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

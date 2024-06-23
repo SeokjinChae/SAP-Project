@@ -1,0 +1,259 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD050_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD050_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM060_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM070_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  PERFORM USER_COMMAND_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  PERFORM EXIT.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0110 INPUT.
+  CASE OK_CODE2.
+    WHEN 'FCODE1'.
+      PERFORM CREATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      MESSAGE S010.    "취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0120 INPUT.
+  CASE OK_CODE3.
+    WHEN 'FCODE3'.
+      PERFORM UPLOAD_EXCEL.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE S010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0130 INPUT.
+  CASE OK_CODE4.
+    WHEN 'FCODE5'.
+      PERFORM UPDATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'.
+      MESSAGE S010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DATA INPUT.
+  DATA : LV_CUSTID  TYPE ZBBT_SD010-CUSTID,
+         LV_CUSTGEN TYPE ZBBT_SD010-CUSTGEN,
+         LV_CUSTAGE TYPE ZBBT_SD010-CUSTAGE.
+
+<font color ="#0000FF">* CUSTID INPUT CHECK</font>
+  IF  ZBBT_SD010-CUSTID IS NOT INITIAL .
+    SELECT SINGLE CUSTID INTO LV_CUSTID
+      FROM ZBBT_SD010
+      WHERE CUSTID = ZBBT_SD010-CUSTID.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E000 WITH '데이터베이스에 존재하지 않는 고객ID입니다.'.
+      CLEAR ZBBT_SD010-CUSTID.
+    ENDIF.
+  ENDIF.
+
+<font color ="#0000FF">* CUSTGEN INPUT CHECK</font>
+  IF  ZBBT_SD010-CUSTGEN IS NOT INITIAL .
+    SELECT SINGLE CUSTGEN INTO LV_CUSTGEN
+      FROM ZBBT_SD010
+      WHERE CUSTGEN = ZBBT_SD010-CUSTGEN.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E000 WITH '데이터베이스에 존재하지 않는 성별값입니다.'.
+      CLEAR ZBBT_SD010-CUSTGEN.
+    ENDIF.
+  ENDIF.
+
+<font color ="#0000FF">* CUSTAGE INPUT CHECK</font>
+  IF  ZBBT_SD010-CUSTAGE IS NOT INITIAL .
+    SELECT SINGLE CUSTAGE INTO LV_CUSTAGE
+      FROM ZBBT_SD010
+      WHERE CUSTAGE = ZBBT_SD010-CUSTAGE.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E000 WITH '데이터베이스에 존재하지 않는 연령대값입니다.'.
+      CLEAR ZBBT_SD010-CUSTAGE.
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_CUSTID_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_CUSTID_F4 INPUT.
+  DATA: LT_RETURN       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.
+
+  TYPES: BEGIN OF TY_CUSTID,
+           CUSTNO LIKE ZBBT_SD010-CUSTNO,
+           CUSTID LIKE ZBBT_SD010-CUSTID,
+         END OF TY_CUSTID.
+  DATA : LT_CUSTID TYPE TABLE OF TY_CUSTID,
+         LS_CUSTID TYPE TY_CUSTID.
+
+  SELECT CUSTNO, CUSTID
+   INTO TABLE @LT_CUSTID
+   FROM ZBBT_SD010
+   ORDER BY CUSTNO.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'CUSTID'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_CUSTID-CUSTID'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '고객'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = lt_CUSTID            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_CUSTGEN_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_CUSTGEN_F4 INPUT.
+<font color ="#0000FF">*  DATA: LT_RETURN       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.</font>
+  CLEAR LT_RETURN.
+  TYPES: BEGIN OF TY_CUSTGEN,
+           CUSTGEN    LIKE ZBBT_SD010-CUSTGEN,
+           CUSTGENTXT TYPE DD07V-DDTEXT,
+         END OF TY_CUSTGEN.
+  DATA : LT_CUSTGEN TYPE TABLE OF TY_CUSTGEN,
+         LS_CUSTGEN TYPE TY_CUSTGEN.
+
+  SELECT DISTINCT CUSTGEN
+   INTO TABLE @LT_CUSTGEN
+   FROM ZBBT_SD010.
+
+  LOOP AT LT_CUSTGEN INTO LS_CUSTGEN.
+
+    IF  LS_CUSTGEN-CUSTGEN EQ '0'.
+      LS_CUSTGEN-CUSTGENTXT = '남성'.
+    ELSE.
+      LS_CUSTGEN-CUSTGENTXT = '여성'.
+    ENDIF.
+    MODIFY LT_CUSTGEN FROM LS_CUSTGEN TRANSPORTING CUSTGENTXT.
+
+  ENDLOOP.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'CUSTGEN'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_CUSTGEN-CUSTGEN'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '고객성별'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = lt_CUSTGEN            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_CUSTAGE_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_CUSTAGE_F4 INPUT.
+<font color ="#0000FF">*  DATA: LT_RETURN       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.</font>
+  CLEAR LT_RETURN.
+  TYPES: BEGIN OF TY_CUSTAGE,
+           CUSTAGE    LIKE ZBBT_SD010-CUSTAGE,
+           CUSTAGETXT TYPE DD07V-DDTEXT,
+         END OF TY_CUSTAGE.
+  DATA : LT_CUSTAGE TYPE TABLE OF TY_CUSTAGE,
+         LS_CUSTAGE TYPE TY_CUSTAGE.
+
+  SELECT DISTINCT CUSTAGE
+   INTO TABLE @LT_CUSTAGE
+   FROM ZBBT_SD010
+    ORDER BY CUSTAGE.
+
+  LOOP AT LT_CUSTAGE INTO LS_CUSTAGE.
+
+    IF  LS_CUSTAGE-CUSTAGE EQ '1'.
+      LS_CUSTAGE-CUSTAGETXT = '10대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '2'.
+      LS_CUSTAGE-CUSTAGETXT = '20대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '3'.
+      LS_CUSTAGE-CUSTAGETXT = '30대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '4'.
+      LS_CUSTAGE-CUSTAGETXT = '40대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '5'.
+      LS_CUSTAGE-CUSTAGETXT = '50대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '6'.
+      LS_CUSTAGE-CUSTAGETXT = '60대'.
+    ELSEIF  LS_CUSTAGE-CUSTAGE EQ '7'.
+      LS_CUSTAGE-CUSTAGETXT = '70대 이상'.
+    ENDIF.
+    MODIFY LT_CUSTAGE FROM LS_CUSTAGE TRANSPORTING CUSTAGETXT.
+
+  ENDLOOP.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'CUSTAGE'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_CUSTGEN-CUSTGEN'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '고객연령대'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = lt_CUSTAGE            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

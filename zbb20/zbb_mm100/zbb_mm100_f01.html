@@ -1,0 +1,802 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM100_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM100_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZTREEF01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include         ZBB_MM100_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  fill_tree_info</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM FILL_TREE_INFO .
+
+  SELECT DISTINCT STORNO MATNO BATCHNO INTO TABLE GT_TR_MM090
+    FROM ZBBT_MM090
+    WHERE STORNO IN SO_SNO
+      AND MATNO  IN SO_MNO
+      AND QUANTITY GT 0.
+
+  SORT GT_TR_MM090 BY STORNO MATNO BATCHNO.
+
+ENDFORM.                    " fill_tree_info
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  fill_alv_info</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM FILL_ALV_INFO .
+
+  DATA: LV_LIN TYPE I.
+
+  IF GT_MM090 IS INITIAL.
+
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_MM090
+      FROM ZBBT_MM090
+      WHERE STORNO IN SO_SNO
+        AND MATNO  IN SO_MNO
+        AND QUANTITY NE 0.
+
+    SORT GT_MM090 BY STORNO MATNO BATCHNO.
+
+  ENDIF.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE S008 DISPLAY LIKE 'E'.
+  ELSE.
+    DESCRIBE TABLE GT_MM090 LINES LV_LIN.
+
+    IF GT_MM090 IS NOT INITIAL.
+      MESSAGE S009 WITH LV_LIN.
+<font color ="#0000FF">*      PERFORM MAKE_DATA.</font>
+    ELSE.
+      MESSAGE S029 DISPLAY LIKE 'E'.
+    ENDIF.
+
+  ENDIF.
+ENDFORM.                    " fill_alv_info
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_screen</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM DISPLAY_SCREEN .
+
+  PERFORM CREATE_OBJECT.
+  PERFORM SET_LAYOUT.
+  PERFORM SET_CATALOG.
+  PERFORM MAKE_DATA.
+  PERFORM REGISTER_TREE_EVENT.
+  PERFORM BUILD_NODE.
+
+  PERFORM CALL_DISPLAY.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  build_node</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM BUILD_NODE .
+
+  DATA: "NODE      TYPE MTREESNODE,
+    LV_STORNO TYPE ZBBT_MM090-STORNO,
+    LV_MATNO  TYPE ZBBT_MM090-MATNO,
+    LV_TEXT   TYPE ZBBT_MM010-STORNM,
+    LV_TEXT2  TYPE ZBBT_MM020-MATNM.
+
+  DATA : LV_TABIX TYPE N LENGTH 2.
+  DATA : LV_seq TYPE N LENGTH 2.
+
+  NODE-NODE_KEY   = 'ROOT'.
+  NODE-TEXT       = '재고 현황'.
+  NODE-ISFOLDER   = 'X'.
+  NODE-N_IMAGE    = '@04@'.   " 접었을 때
+  NODE-EXP_IMAGE  = '@05@'.   " 펼쳤을 때
+  APPEND NODE TO NODE_TABLE.
+  CLEAR NODE.
+
+<font color ="#0000FF">*  SORT GT_TR_MM090.</font>
+
+  LOOP AT GT_TR_MM090 INTO GS_TR_MM090.
+
+    LV_TABIX = LV_TABIX + 1.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+    ON CHANGE OF GS_TR_MM090-STORNO.
+      MOVE GS_TR_MM090-STORNO TO LV_STORNO.
+
+      SELECT SINGLE STORNM INTO LV_TEXT
+        FROM ZBBT_MM010
+        WHERE STORNO EQ LV_STORNO.
+
+      NODE-NODE_KEY  = GS_TR_MM090-STORNO.
+      NODE-RELATKEY  = 'ROOT'.
+      NODE-ISFOLDER  = 'X'.
+      NODE-N_IMAGE   = '@04@'.    " 접었을 때
+      NODE-EXP_IMAGE  = '@05@'.   " 펼쳤을 때
+      NODE-TEXT = LV_TEXT.
+      APPEND NODE TO NODE_TABLE.
+      CLEAR NODE.
+    ENDON.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+    ON CHANGE OF GS_TR_MM090-MATNO.
+      MOVE GS_TR_MM090-MATNO TO LV_MATNO.
+
+      SELECT SINGLE MATNM INTO LV_TEXT2
+        FROM ZBBT_MM020
+        WHERE MATNO EQ LV_MATNO.
+
+<font color ="#0000FF">*      NODE-NODE_KEY  = GS_TR_MM090-MATNO.</font>
+      CONCATENATE lv_TABIX GS_TR_MM090-MATNO INTO NODE-NODE_KEY .
+      NODE-RELATKEY  = GS_TR_MM090-STORNO.
+      NODE-ISFOLDER  = 'X'.
+      NODE-N_IMAGE   = '@04@'.    " 접었을 때
+      NODE-EXP_IMAGE  = '@05@'.   " 펼쳤을 때
+      NODE-TEXT = LV_TEXT2.
+      APPEND NODE TO NODE_TABLE.
+      CLEAR NODE.
+
+      LV_SEQ = LV_TABIX.
+    ENDON.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+
+    NODE-NODE_KEY = GS_TR_MM090-BATCHNO.
+<font color ="#0000FF">*    NODE-RELATKEY = GS_TR_MM090-MATNO.</font>
+    CONCATENATE LV_SEQ GS_TR_MM090-MATNO INTO  NODE-RELATKEY.
+    NODE-ISFOLDER = ''.
+    NODE-TEXT = GS_TR_MM090-BATCHNO.
+    APPEND NODE TO NODE_TABLE.
+    CLEAR: NODE, GS_TR_MM090.
+
+  ENDLOOP.
+  IF SY-SUBRC &lt;&gt; 0 .
+    MESSAGE 'FORM BUILD_NODE 오류.' TYPE 'E'.
+  ENDIF.
+ENDFORM.                    " build_node
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM SET_LAYOUT .
+
+  GS_LAYOUT-GRID_TITLE = '자재 재고 조회'.
+  GS_LAYOUT-SEL_MODE = 'D'.
+  GS_LAYOUT-ZEBRA = 'X'.
+
+  "light 추가
+  GS_LAYOUT-EXCP_FNAME = 'LIGHT'.
+  GS_LAYOUT-EXCP_LED = 'X'.
+
+  "Line 컬러 적용
+  GS_LAYOUT-INFO_FNAME = 'COLOR'.
+
+ENDFORM.                    " set_layout
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  search_clicked_node_info</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*      --&gt;P_NODE_KEY  text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM SEARCH_CLICKED_NODE_INFO  USING PV_NODE_KEY.
+
+  CLEAR: GT_MM090, NODE.
+
+  DATA : LS_CHAR(8) TYPE C,
+         LV_LEN(2)  TYPE C,
+         LV_LIN     TYPE I.
+
+
+  LV_LEN = STRLEN( PV_NODE_KEY ).
+  LS_CHAR = PV_NODE_KEY.
+
+  " 클릭한 node_key에 대한 node_table 불러오기
+  READ TABLE NODE_TABLE INTO NODE WITH KEY
+     NODE_KEY = PV_NODE_KEY.
+
+
+  IF LV_LEN LE 6 AND PV_NODE_KEY NE 'ROOT'.  " 창고를 클릭했을 경우
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_MM090
+      FROM  ZBBT_MM090
+     WHERE STORNO EQ PV_NODE_KEY
+       AND  MATNO IN SO_MNO
+       AND QUANTITY GT 0.
+
+    SORT GT_MM090 BY MATNO BATCHNO.
+
+  ELSEIF LV_LEN GE 10.  " 배치번호를 클릭했을 경우
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_MM090
+      FROM  ZBBT_MM090
+     WHERE BATCHNO EQ PV_NODE_KEY
+       AND QUANTITY GT 0.
+    SORT GT_MM090 BY BATCHNO.
+
+  ELSEIF PV_NODE_KEY EQ 'ROOT'.
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_MM090
+      FROM  ZBBT_MM090
+     WHERE QUANTITY GT 0.
+
+    SORT GT_MM090 BY STORNO MATNO BATCHNO.
+
+<font color ="#0000FF">**********************************************************************</font>
+
+  ELSE. " 자재코드를 클릭했을 경우
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_MM090
+      FROM  ZBBT_MM090
+     WHERE STORNO EQ NODE-RELATKEY
+       AND  MATNO EQ LS_CHAR+2(6)   " 중복 방지용
+       AND QUANTITY GT 0.
+
+    SORT GT_MM090 BY BATCHNO.
+
+<font color ="#0000FF">**********************************************************************</font>
+
+  ENDIF.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE S008 DISPLAY LIKE 'E'.
+  ELSE.
+    DESCRIBE TABLE GT_MM090 LINES LV_LIN.
+
+    IF GT_MM090 IS NOT INITIAL.
+      MESSAGE S009 WITH LV_LIN.
+      PERFORM MAKE_DATA.
+    ELSE.
+      MESSAGE S029 DISPLAY LIKE 'E'.
+    ENDIF.
+
+  ENDIF.
+
+
+ENDFORM.                    " search_clicked_node_info
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_OBJECT .
+
+  GV_CPROG = SY-CPROG.
+  GV_DYNNR = SY-DYNNR.
+
+  CREATE OBJECT GO_LEFT_CONT
+    EXPORTING
+      REPID     = GV_CPROG
+      DYNNR     = GV_DYNNR
+      SIDE      = GO_LEFT_CONT-&gt;DOCK_AT_LEFT
+      EXTENSION = 200
+    EXCEPTIONS
+      OTHERS    = 1.
+  IF SY-SUBRC &lt;&gt; 0 .
+    MESSAGE 'CREATE OBJECT GO_LEFT_CONT 오류.' TYPE 'E'.
+  ENDIF.
+
+  CREATE OBJECT GO_RIGHT_CONT
+    EXPORTING
+      REPID     = GV_CPROG
+      DYNNR     = GV_DYNNR
+      SIDE      = GO_RIGHT_CONT-&gt;DOCK_AT_LEFT"RIGHT "LEFT
+      EXTENSION = 1000
+    EXCEPTIONS
+      OTHERS    = 1.
+  IF SY-SUBRC &lt;&gt; 0 .
+    MESSAGE 'CREATE OBJECT GO_RIGHT_CONT 오류.' TYPE 'E'.
+  ENDIF.
+
+
+  CREATE OBJECT GO_TREE
+    EXPORTING
+      PARENT              = GO_LEFT_CONT
+      NODE_SELECTION_MODE = CL_GUI_SIMPLE_TREE=&gt;NODE_SEL_MODE_SINGLE.
+  IF SY-SUBRC &lt;&gt; 0 .
+    MESSAGE 'CREATE OBJECT GO_TREE 오류.' TYPE 'E'.
+  ENDIF.
+
+  CREATE OBJECT GO_ALV_GRID
+    EXPORTING
+      I_PARENT = GO_RIGHT_CONT.
+  IF SY-SUBRC &lt;&gt; 0 .
+    MESSAGE 'CREATE OBJECT GO_ALV_GRID 오류.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Form  register_tree_event</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  --&gt;  p1        text</font>
+<font color ="#0000FF">*  &lt;--  p2        text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+FORM REGISTER_TREE_EVENT .
+
+  EVENT-EVENTID = CL_GUI_SIMPLE_TREE=&gt;EVENTID_NODE_DOUBLE_CLICK.
+  EVENT-APPL_EVENT = 'X'.
+  APPEND EVENT TO EVENTS.
+
+  CALL METHOD GO_TREE-&gt;SET_REGISTERED_EVENTS
+    EXPORTING
+      EVENTS                    = EVENTS
+    EXCEPTIONS
+      CNTL_ERROR                = 1
+      CNTL_SYSTEM_ERROR         = 2
+      ILLEGAL_EVENT_COMBINATION = 3
+      OTHERS                    = 4.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'FORM REGISTER_TREE_EVENT 오류.' TYPE 'E'.
+  ENDIF.
+
+  SET HANDLER LCL_TREE_EVENT_HANDLER=&gt;HANDLE_NODE_DOUBLE_CLICK FOR GO_TREE.
+
+ENDFORM.                    " register_tree_event
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_CATALOG .
+<font color ="#0000FF">*  CLEAR: GS_FCAT, GT_FCAT.</font>
+
+  CLEAR GS_FCAT.
+  GS_FCAT-FIELDNAME = 'LIGHT'.
+  GS_FCAT-COLTEXT = '긴급도'.
+<font color ="#0000FF">*  GS_FCAT-OUTPUTLEN = 11.</font>
+  GS_FCAT-KEY = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+
+  GS_FCAT-FIELDNAME = 'STORNO'.
+  GS_FCAT-COLTEXT   = '창고번호'.
+  GS_FCAT-OUTPUTLEN = '6'.
+  GS_FCAT-KEY       = 'X'.
+  GS_FCAT-COL_POS   = 1.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'MATNO'.
+  GS_FCAT-COLTEXT   = '자재코드'.
+  GS_FCAT-OUTPUTLEN = '6'.
+  GS_FCAT-KEY       = 'X'.
+  GS_FCAT-COL_POS   = 2.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'MATNM'.
+  GS_FCAT-COLTEXT   = '자재명'.
+  GS_FCAT-OUTPUTLEN = '18'.
+  GS_FCAT-KEY       = 'X'.
+  GS_FCAT-COL_POS   = 3.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'BATCHNO'.
+  GS_FCAT-COLTEXT   = '배치번호'.
+  GS_FCAT-OUTPUTLEN = '11'.
+  GS_FCAT-KEY       = ' '.
+  GS_FCAT-COL_POS   = 4.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'EXPIRDT'.
+  GS_FCAT-COLTEXT   = '유통기한'.
+  GS_FCAT-OUTPUTLEN = '11'.
+  GS_FCAT-COL_POS   = 5.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'PERFORMNO'.
+  GS_FCAT-COLTEXT   = '생산실적번호'.
+  GS_FCAT-OUTPUTLEN = '11'.
+  GS_FCAT-COL_POS   = 6.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'PURORDNO'.
+  GS_FCAT-COLTEXT   = '구매오더번호'.
+  GS_FCAT-OUTPUTLEN = '11'.
+  GS_FCAT-COL_POS   = 7.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'QUANTITY'.
+  GS_FCAT-COLTEXT   = '수량'.
+  GS_FCAT-OUTPUTLEN = '6'.
+  GS_FCAT-COL_POS   = 8.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'UNIT'.
+  GS_FCAT-COLTEXT   = '단위'.
+  GS_FCAT-OUTPUTLEN = '2'.
+  GS_FCAT-COL_POS   = 9.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  " *--------------------------------------------------------------------*
+  " * Include 제거
+  " * CREATE_DT, CREATE_TM, CUSER, UPDATE_DT, UPDATE_TM, UUSER
+  " *--------------------------------------------------------------------*
+  GS_FCAT-FIELDNAME = 'DEFPTYPE'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'MDELFLAG'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'CREATE_DT'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'CREATE_TM'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'CUSER'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'UPDATE_DT'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+  GS_FCAT-FIELDNAME = 'UPDATE_TM'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+
+  GS_FCAT-FIELDNAME = 'UUSER'.
+  GS_FCAT-NO_OUT = 'X'.
+  APPEND GS_FCAT TO GT_FCAT.
+  CLEAR GS_FCAT.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form MAKE_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM MAKE_DATA .
+  LOOP AT GT_MM090 INTO GS_MM090.
+
+    " 유통기한에 따른 ALV Layout (LIGHT & COLOR)
+    IF GS_MM090-DEFPTYPE IS INITIAL.  " 폐기 창고 재고에 대해서는 LIGHT & COLOR 표시하지 않음.
+      DATA: LV_DAT TYPE I.
+      LV_DAT = GS_MM090-EXPIRDT - SY-DATUM.
+      IF LV_DAT LE 180.  " 남은 유통기한이 6개월 이내라면 = 임박!
+        GS_MM090-LIGHT = 1. " RED
+        GS_MM090-COLOR = 'C600'.
+      ELSEIF LV_DAT LE 365. " 남은 유통기한이 6개월~12개월 이라면 = 그래도 빨리!
+        GS_MM090-LIGHT = 2. " YELLOW
+        GS_MM090-COLOR = 'C300'.
+      ELSE.                 " 남은 유통기한이 12개월 초과라면 (GT 365)
+        GS_MM090-LIGHT = 3.
+      ENDIF.
+    ELSE. " 폐기일 경우
+      GS_MM090-LIGHT = 1.
+      GS_MM090-COLOR = 'C710'.
+    ENDIF.
+
+    " 자재명 (MATNM)
+    SELECT SINGLE *
+          FROM ZBBT_MM020
+          INTO GS_MM020
+          WHERE MATNO = GS_MM090-MATNO.
+
+    GS_MM090-MATNM = GS_MM020-MATNM.
+
+    MODIFY GT_MM090 FROM GS_MM090 TRANSPORTING LIGHT COLOR MATNM.
+
+  ENDLOOP.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CALL_DISPLAY .
+  " Tree display
+
+<font color ="#0000FF">*    CALL METHOD go_tree-&gt;</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        i_save          = 'A'</font>
+<font color ="#0000FF">*        is_layout       = gs_layout</font>
+<font color ="#0000FF">**       is_variant      = gs_variant</font>
+<font color ="#0000FF">*      CHANGING</font>
+<font color ="#0000FF">*        it_outtab       = gt_tr_mm090</font>
+<font color ="#0000FF">**       it_sort         = gt_sort</font>
+<font color ="#0000FF">*        it_fieldcatalog = gt_FCAT.</font>
+
+  CALL METHOD GO_TREE-&gt;ADD_NODES
+    EXPORTING
+      TABLE_STRUCTURE_NAME = 'MTREESNODE'
+      NODE_TABLE           = NODE_TABLE.
+
+  CALL METHOD GO_TREE-&gt;EXPAND_NODE
+    EXPORTING
+      NODE_KEY = 'ROOT'.
+
+
+
+  CALL METHOD GO_ALV_GRID-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'ZBBT_MM090'
+<font color ="#0000FF">*     I_SAVE           = 'A'</font>
+<font color ="#0000FF">*     I_DEFAULT        = 'X'</font>
+      IS_LAYOUT        = GS_LAYOUT
+    CHANGING
+      IT_OUTTAB        = GT_MM090
+      IT_FIELDCATALOG  = GT_FCAT
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'FORM CALL_DISPLAY0 오류 발생.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CHECK_SNO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CHECK_SNO .
+
+  DATA: LV_SNO TYPE ZBBT_MM090-STORNO.
+
+  IF SO_SNO IS NOT INITIAL.
+    SELECT SINGLE STORNO INTO LV_SNO
+      FROM ZBBT_MM090
+      WHERE STORNO IN SO_SNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      CLEAR SO_SNO.
+      MESSAGE '유효한 창고번호가 아닙니다.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CHECK_MNO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CHECK_MNO .
+
+  DATA: LV_MNO TYPE ZBBT_MM090-MATNO.
+
+  IF SO_MNO IS NOT INITIAL.
+    SELECT SINGLE MATNO INTO LV_MNO
+      FROM ZBBT_MM090
+      WHERE MATNO IN SO_MNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      CLEAR   SO_MNO.
+      MESSAGE '유효한 자재코드가 아닙니다.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form PORVIEW_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM PORVIEW_ANSWER .
+
+
+  DATA: LV_ANSWER.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '화면 이동 확인'
+      TEXT_QUESTION         = '구매오더 조회 화면으로 이동하시겠습니까?'
+      TEXT_BUTTON_1         = '네'
+      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'
+      TEXT_BUTTON_2         = '아니오'
+      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'
+      DEFAULT_BUTTON        = '1'
+      DISPLAY_CANCEL_BUTTON = ''
+    IMPORTING
+      ANSWER                = LV_ANSWER
+    EXCEPTIONS
+      OTHERS                = 1.
+  IF LV_ANSWER = '1'.
+    MESSAGE S013. " 이동이 완료되었습니다.
+    CALL TRANSACTION 'ZBBMM090'.  " 구매오더 조회
+  ELSE.
+    MESSAGE S010.     " 취소되었습니다.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form PFMVIEW_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM PFMVIEW_ANSWER .
+
+
+<font color ="#0000FF">*  DATA: LV_ANSWER.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CALL FUNCTION 'POPUP_TO_CONFIRM'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      TITLEBAR              = '화면 이동 확인'</font>
+<font color ="#0000FF">*      TEXT_QUESTION         = '생산실적 조회 화면으로 이동하시겠습니까?'</font>
+<font color ="#0000FF">*      TEXT_BUTTON_1         = '네'</font>
+<font color ="#0000FF">*      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'</font>
+<font color ="#0000FF">*      TEXT_BUTTON_2         = '아니오'</font>
+<font color ="#0000FF">*      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'</font>
+<font color ="#0000FF">*      DEFAULT_BUTTON        = '1'</font>
+<font color ="#0000FF">*      DISPLAY_CANCEL_BUTTON = ''</font>
+<font color ="#0000FF">*    IMPORTING</font>
+<font color ="#0000FF">*      ANSWER                = LV_ANSWER</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      OTHERS                = 1.</font>
+<font color ="#0000FF">*  IF LV_ANSWER = '1'.</font>
+<font color ="#0000FF">**    MESSAGE S013. " 이동이 완료되었습니다.</font>
+<font color ="#0000FF">*    CALL TRANSACTION 'ZBBPP080'.  " 생산실적 조회</font>
+<font color ="#0000FF">*  ELSE.</font>
+<font color ="#0000FF">*    MESSAGE S010. " 취소되었습니다.</font>
+<font color ="#0000FF">*  ENDIF.</font>
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form F4_STORNO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM F4_STORNO .
+
+  DATA: BEGIN OF LS_STORNO,
+          STORNO TYPE ZBBT_MM010-STORNO,
+          STORNM TYPE ZBBT_MM010-STORNM,
+        END OF LS_STORNO,
+        LT_STORNO LIKE TABLE OF LS_STORNO.
+
+  CLEAR LS_STORNO.
+  REFRESH LT_STORNO.
+
+  SELECT STORNO STORNM
+    INTO CORRESPONDING FIELDS OF TABLE LT_STORNO
+    FROM ZBBT_MM010
+    WHERE DELFLAG &lt;&gt; 'X'.
+
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE '창고번호 Search Help 오류' TYPE 'E'.
+      EXIT.
+    ELSE.
+      SORT LT_STORNO BY STORNO.
+    ENDIF.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        RETFIELD        = 'STORNO'
+        DYNPPROG        = SY-REPID
+        DYNPNR          = SY-DYNNR
+        DYNPROFIELD     = 'SO_SNO'
+        WINDOW_TITLE    = '창고번호'
+        VALUE_ORG       = 'S'
+      TABLES
+        VALUE_TAB       = LT_STORNO
+      EXCEPTIONS
+        PARAMETER_ERROR = 1
+        NO_VALUES_FOUND = 2
+        OTHERS          = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE 'CALL FUNCTION F4IF_INT_TABLE_VALUE_REQUEST 오류' TYPE 'E'.
+    ENDIF.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form F4_MATNO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM F4_MATNO .
+
+  DATA: BEGIN OF LS_MATNO,
+          MATNO TYPE ZBBT_MM020-MATNO,
+          MATNM TYPE ZBBT_MM020-MATNM,
+        END OF LS_MATNO,
+        LT_MATNO LIKE TABLE OF LS_MATNO.
+
+  CLEAR LS_MATNO.
+  REFRESH LT_MATNO.
+
+  SELECT MATNO MATNM
+    INTO CORRESPONDING FIELDS OF TABLE LT_MATNO
+    FROM ZBBT_MM020
+    WHERE DELFLAG &lt;&gt; 'X'.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE '창고번호 Search Help 오류' TYPE 'E'.
+      EXIT.
+    ELSE.
+      SORT LT_MATNO BY MATNO.
+    ENDIF.
+
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+      EXPORTING
+        RETFIELD        = 'MATNO'
+        DYNPPROG        = SY-REPID
+        DYNPNR          = SY-DYNNR
+        DYNPROFIELD     = 'SO_SNO'
+        WINDOW_TITLE    = '창고번호'
+        VALUE_ORG       = 'S'
+      TABLES
+        VALUE_TAB       = LT_MATNO
+      EXCEPTIONS
+        PARAMETER_ERROR = 1
+        NO_VALUES_FOUND = 2
+        OTHERS          = 3.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE 'CALL FUNCTION F4IF_INT_TABLE_VALUE_REQUEST 오류' TYPE 'E'.
+    ENDIF.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

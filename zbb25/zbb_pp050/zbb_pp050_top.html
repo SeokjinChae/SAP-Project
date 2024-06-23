@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_PP050_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_PP050_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+"생산계획 헤더, 아이템, 판매계획 헤더, 아이템. 자재 마스터
+TABLES : zbbt_pp020, zbbt_pp030, zbbt_sd070, zbbt_sd080, zbbt_mm020.
+
+TYPE-POOLS : icon, col.
+
+
+DATA : gt_pp020 TYPE TABLE OF zbbt_pp020,
+       gs_pp020 LIKE LINE OF gt_pp020.
+
+DATA : gt_pp030 TYPE TABLE OF zbbt_pp030,
+       gs_pp030 LIKE LINE OF gt_pp030.
+
+<font color ="#0000FF">*DATA : gt_sd070 TYPE TABLE OF zbbt_sd070,</font>
+<font color ="#0000FF">*       gs_sd070 LIKE LINE OF gt_sd070.</font>
+
+DATA : gt_sd080 TYPE TABLE OF zbbt_sd080,
+       gs_sd080 LIKE LINE OF gt_sd080.
+
+DATA : BEGIN OF GS_SD070,
+  MANDT TYPE ZBBT_SD070-MANDT,
+  SPLANNO TYPE ZBBT_SD070-SPLANNO,
+  SPLANDATE TYPE ZBBT_SD070-SPLANDATE,
+  SPLANY TYPE ZBBT_SD070-SPLANY,
+  SPLANM TYPE ZBBT_SD070-SPLANM,
+  SPLANTXT TYPE ZBBT_SD070-SPLANTXT,
+  SPLANYN TYPE ZBBT_SD070-SPLANYN,
+  SPLANSUB TYPE ZBBT_SD070-SPLANSUB,
+  EMPNO TYPE ZBBT_SD070-EMPNO,
+  CREATE_DT TYPE ZBBT_SD070-CREATE_DT,
+  CREATE_TM TYPE ZBBT_SD070-CREATE_TM,
+  CUSER TYPE ZBBT_SD070-CUSER,
+  UPDATE_DT TYPE ZBBT_SD070-UPDATE_DT,
+  UPDATE_TM TYPE ZBBT_SD070-UPDATE_TM,
+  UUSER TYPE ZBBT_SD070-UUSER,
+  END OF GS_SD070.
+  DATA : GT_SD070 LIKE TABLE OF GS_SD070.
+
+
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 생산계획 조회용</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : BEGIN OF gs_display0,  " 조회용 / 생산계획 헤더 보여주는 테이블
+         pplanno     TYPE zbbt_pp020-pplanno,
+         ppsuripdate TYPE zbbt_pp020-ppsuripdate,
+         pplandate   TYPE zbbt_pp020-pplandate,
+         pplantxt    TYPE zbbt_pp020-pplantxt,
+         pplanyn     TYPE zbbt_pp020-pplanyn,
+         plantno     TYPE zbbt_pp020-plantno,
+         empno       TYPE zbbt_pp020-empno,
+         linecolor(4),
+       END OF gs_display0.
+DATA : gt_display0 LIKE TABLE OF gs_display0.
+
+
+DATA : BEGIN OF gs_display1,  " 조회용 / 생산계획 아이템 보여주는 테이블
+         pplanno  TYPE zbbt_pp020-pplanno,
+         itemno   TYPE zbbt_pp030-itemno,
+         quantity TYPE zbbt_pp030-quantity,
+         unit     TYPE zbbt_pp030-unit,
+         matno    TYPE zbbt_pp030-matno,
+         matnm    TYPE zbbt_mm020-matnm,
+       END OF gs_display1.
+DATA : gt_display1 LIKE TABLE OF gs_display1.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 생산계획 생성용. 생산계획 생성(헤더)에서는 판매계획 헤더와 생산계획 헤더 모두 보여줘야함.</font>
+<font color ="#0000FF">* -&gt;사용자가 판매계획 헤더의 버튼을 눌러서 생산계획을 자동채번하여 생성할 수 있도록.</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : BEGIN OF gs_display2,  "판매계획 보여주는 테이블
+         splanno   TYPE zbbt_sd070-splanno,
+         splandate TYPE zbbt_sd070-splandate,
+         splany    TYPE zbbt_sd070-splany,
+         splanm    TYPE zbbt_sd070-splanm,
+         splantxt  TYPE zbbt_sd070-splantxt,
+         splanyn   TYPE zbbt_sd070-splanyn,
+         splansub  TYPE zbbt_sd070-splansub,
+         empno     TYPE zbbt_sd070-empno,
+         light     TYPE c LENGTH 1, "판매계획 있으나 생산계획으로 전환되지 않은 것 표시용
+         button    TYPE c LENGTH 10,
+       END OF gs_display2.
+DATA : gt_display2 LIKE TABLE OF gs_display2.
+
+"GT_DISPLAY2를 다건  선택했을 때, 임시로 넣어 두는 테이블
+DATA : gs_display2_temp LIKE gs_display2.
+DATA : gt_display2_temp LIKE TABLE OF gs_display2_temp.
+
+DATA : r_count0 TYPE string VALUE '0',
+       y_count0 TYPE string VALUE '0',
+       g_count0 TYPE string VALUE '0'.
+
+DATA : BEGIN OF gs_display3,
+         splanno  TYPE zbbt_sd080-splanno,
+         matno    TYPE zbbt_sd080-matno,
+         quantity TYPE zbbt_sd080-quantity,
+         unit     TYPE zbbt_sd080-unit,
+
+         matnm    TYPE zbbt_mm020-matnm,
+<font color ="#0000FF">*              create_dt080 TYPE zbbt_sd080-create_dt,</font>
+<font color ="#0000FF">*              create_tm080 TYPE zbbt_sd080-create_tm,</font>
+<font color ="#0000FF">*              cuser080 TYPE zbbt_sd080-cuser,</font>
+<font color ="#0000FF">*              update_dt080 TYPE zbbt_sd080-update_dt,</font>
+<font color ="#0000FF">*              update_tm080 TYPE zbbt_sd080-update_tm,</font>
+<font color ="#0000FF">*              uuser080 TYPE zbbt_sd080-uuser</font>
+       END OF gs_display3.
+DATA : gt_display3 LIKE TABLE OF gs_display3.
+
+DATA : BEGIN OF gs_display4,
+         mandt       type zbbt_pp020-mandt, "이거 없어가지고, 저장할때 인터널 테이블과 디비 테이블의 구조가 다르다고하는듯...?
+         pplanno     TYPE zbbt_pp020-pplanno,
+         ppsuripdate TYPE zbbt_pp020-ppsuripdate,
+         pplandate   TYPE zbbt_pp020-pplandate,
+         pplantxt    TYPE zbbt_pp020-pplantxt,
+         pplanyn     TYPE zbbt_pp020-pplanyn,
+         plantno     TYPE zbbt_pp020-plantno,
+         empno       TYPE zbbt_pp020-empno,
+         create_dt   TYPE zbbt_pp020-create_dt,
+         create_tm   TYPE zbbt_pp020-create_tm,
+         cuser       TYPE zbbt_pp020-cuser,
+         update_dt   TYPE zbbt_pp020-update_dt,
+         update_tm   TYPE zbbt_pp020-update_tm,
+         uuser       TYPE zbbt_pp020-uuser,
+       END OF gs_display4.
+DATA : gt_display4 LIKE TABLE OF gs_display4.
+
+
+
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : gs_layout0 TYPE lvc_s_layo.
+DATA : gs_layout1 TYPE lvc_s_layo.
+
+DATA : gs_layout2 TYPE lvc_s_layo.
+DATA : gs_layout3 TYPE lvc_s_layo.
+DATA : gs_layout5 TYPE lvc_s_layo. "이거 최종부에 최종욱 차무식방법 쓴거임 판매계획 아이템 타이틀 요상하게나와서
+
+
+<font color ="#0000FF">*DATA : GS_CELL_COLOR0 LIKE LINE OF GS_DISPLAY0-IT_CELL_COLOR.</font>
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 생산계획 조회용 필드카탈로그</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+DATA : gt_fcat0 TYPE lvc_t_fcat,
+       gs_fcat0 TYPE lvc_s_fcat.
+DATA : gt_fcat1 TYPE lvc_t_fcat,
+       gs_fcat1 TYPE lvc_s_fcat.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 생산계획 생성용 필드 카탈로그</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : gt_fcat2 TYPE lvc_t_fcat,
+       gs_fcat2 TYPE lvc_s_fcat.
+
+DATA : gt_fcat3 TYPE lvc_t_fcat,
+       gs_fcat3 TYPE lvc_s_fcat.
+
+DATA : gt_fcat4 TYPE lvc_t_fcat,
+       gs_fcat4 TYPE lvc_s_fcat.
+
+DATA : gt_sorting_criteria0  TYPE lvc_t_sort,
+       gs_sorting_criterion0 TYPE lvc_s_sort.
+DATA : gt_sorting_criteria1  TYPE lvc_t_sort,
+       gs_sorting_criterion1 TYPE lvc_s_sort.
+<font color ="#0000FF">*DATA : GT_SORTING_CRITERIA2  TYPE LVC_T_SORT,</font>
+<font color ="#0000FF">*       GS_SORTING_CRITERION2 TYPE LVC_S_SORT.</font>
+
+DATA : gs_vari TYPE disvariant,
+       gv_save.
+
+DATA : gv_pplanno TYPE zbbt_pp020-pplanno.
+
+DATA : GV_SPLANNO TYPE C LENGTH 15.
+DATA : gv_sdtopp_num TYPE c LENGTH 15.
+DATA : GV_EMPNO TYPE ZBBT_PP020-EMPNO.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+CLASS lcl_event_handler DEFINITION DEFERRED.
+
+DATA : go_cont_dock            TYPE REF TO cl_gui_docking_container,
+       go_cont_split           TYPE REF TO cl_gui_splitter_container,
+       go_cont_top             TYPE REF TO cl_gui_container,
+       go_cont_bot             TYPE REF TO cl_gui_container,
+       go_grid0                TYPE REF TO cl_gui_alv_grid,
+       go_grid1                TYPE REF TO cl_gui_alv_grid,
+       go_grid2                TYPE REF TO cl_gui_alv_grid,
+       go_grid3                TYPE REF TO cl_gui_alv_grid,
+       ok_code                 LIKE sy-ucomm,
+       ok_code1                LIKE sy-ucomm,
+       ok_code2                LIKE sy-ucomm,
+       go_handler              TYPE REF TO lcl_event_handler,
+       go_handler2              TYPE REF TO lcl_event_handler,
+       go_handler_button       TYPE REF TO lcl_event_handler, "버튼 이벤트
+       go_handler_toolbar      TYPE REF TO lcl_event_handler,
+       go_handler_user_command TYPE REF TO lcl_event_handler,
+       go_handler_user_command2 TYPE REF TO lcl_event_handler,
+       go_handler_toolbar2     TYPE REF TO lcl_event_handler, "임시 생산계획의 툴바
+       go_handler_toolbar3     TYPE REF TO lcl_event_handler "생산계획 조회-헤더의 툴바
+       .
+
+<font color ="#0000FF">*DATA: ok_code LIKE sy-ucomm.</font>
+<font color ="#0000FF">*DATA: ok_code1 LIKE sy-ucomm.</font>
+
+DATA: go_alv_grid   TYPE REF TO cl_gui_alv_grid, "클래스 참조변수 선언
+      go_alv_grid2  TYPE REF TO cl_gui_alv_grid,
+      go_alv_grid3  TYPE REF TO cl_gui_alv_grid,
+      go_docking    TYPE REF TO cl_gui_docking_container, "global object 선언
+      go_container  TYPE REF TO cl_gui_custom_container,
+      go_container2 TYPE REF TO cl_gui_custom_container,
+      go_container3 TYPE REF TO cl_gui_custom_container.
+
+DATA : gv_rowid TYPE lvc_t_roid.
+DATA : gt_index TYPE lvc_t_row,
+       gs_index LIKE LINE OF gt_index.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

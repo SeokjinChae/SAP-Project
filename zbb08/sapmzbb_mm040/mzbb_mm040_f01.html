@@ -1,0 +1,879 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM040_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM040_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM040_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM040_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exit</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM EXIT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command_0100</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM USER_COMMAND_0100.
+
+  CASE OK_CODE.
+    WHEN 'CONFIRM'.
+      PERFORM SAVE_DATA.
+      PERFORM REFRESH_GRID.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'FC1'.
+      PERFORM RADIO_BUTTON.
+      PERFORM GET_DATA.
+      PERFORM MAKE_DATA.
+      PERFORM DISPLAY_DATA.
+      CLEAR ZBBT_MM040-PURREQNO.
+      CLEAR ZBBT_MM040-VENNO.
+      CLEAR ZBBT_MM040-MATNO.
+      CLEAR ZBBT_MM040-REQDATE.
+      CLEAR ZBBT_MM040-REQENO.
+
+    WHEN 'FC2'.
+      IF ZBBT_MM040-PURREQNO IS NOT INITIAL OR
+        ZBBT_MM040-VENNO IS NOT INITIAL OR
+        ZBBT_MM040-MATNO IS NOT INITIAL OR
+        ZBBT_MM040-REQDATE IS NOT INITIAL OR
+        GT_MM040 IS NOT INITIAL OR
+        GV_WHERE5 IS NOT INITIAL OR
+        RB1 &lt;&gt; 'X'.
+
+        CLEAR ZBBT_MM040-PURREQNO.
+        CLEAR ZBBT_MM040-VENNO.
+        CLEAR ZBBT_MM040-MATNO.
+        CLEAR ZBBT_MM040-REQDATE.
+        CLEAR GT_MM040.
+        CLEAR GV_WHERE5.
+        RB1 = 'X'.
+        RB2 = ' '.
+        RB3 = ' '.
+        MESSAGE S086. " 초기화가 완료되었습니다.
+      ENDIF.
+    WHEN 'RBFC1'.
+      PERFORM RADIO_BUTTON.
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_object</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_OBJECT.
+  IF GO_CONT IS INITIAL.
+
+    CREATE OBJECT GO_CONT
+      EXPORTING
+        CONTAINER_NAME = 'MY_CUSTOM'
+      EXCEPTIONS
+        OTHERS         = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E102. " ALV 생성에 실패했습니다.
+    ENDIF.
+
+    CREATE OBJECT GO_GRID
+      EXPORTING
+        I_PARENT = GO_CONT
+      EXCEPTIONS
+        OTHERS   = 1.
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E102. " ALV 생성에 실패했습니다.
+    ENDIF.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_table</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM DISPLAY_TABLE.
+
+  CALL METHOD GO_GRID-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'ZBBT_MM040'
+      IS_LAYOUT        = GS_LAYOUT
+    CHANGING
+      IT_OUTTAB        = GT_MM040
+      IT_SORT          = GT_SCRITERIA
+      IT_FIELDCATALOG  = GT_FIELD_CAT.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_SORTING</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_SORTING.
+
+  GS_SCRITERION-FIELDNAME = 'PURREQNO'.
+  GS_SCRITERION-DOWN = 'X'.
+  APPEND GS_SCRITERION TO GT_SCRITERIA.
+  CLEAR GS_SCRITERION.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_field_cat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_FIELD_CAT.
+
+  CLEAR GT_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'LIGHT'.
+  GS_FIELD_CAT-COLTEXT = '상태'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'PURREQNO'.
+  GS_FIELD_CAT-OUTPUTLEN = '13'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'VENNO'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'VENNM'.
+  GS_FIELD_CAT-COLTEXT = '거래처명'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'L'.
+  GS_FIELD_CAT-COL_POS = '4'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'MATNO'.
+  GS_FIELD_CAT-OUTPUTLEN = '8'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'MATNM'.
+  GS_FIELD_CAT-COLTEXT = '자재명'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'L'.
+  GS_FIELD_CAT-COL_POS = '6'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'QUANTITY'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'R'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'UNIT'.
+  GS_FIELD_CAT-OUTPUTLEN = '4'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'LEADTIME'.
+  GS_FIELD_CAT-COLTEXT = '리드타임'.
+  GS_FIELD_CAT-OUTPUTLEN = '6'.
+  GS_FIELD_CAT-COL_POS = '9'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQTXT'.
+  GS_FIELD_CAT-OUTPUTLEN = '15'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQSUB'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQDATE'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQENO'.
+  GS_FIELD_CAT-OUTPUTLEN = '9'.
+  GS_FIELD_CAT-JUST = 'L'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'EMPNM'.
+  GS_FIELD_CAT-COLTEXT = '구매요청확정자명'.
+  GS_FIELD_CAT-OUTPUTLEN = '10'.
+  GS_FIELD_CAT-JUST = 'L'.
+  GS_FIELD_CAT-COL_POS = '15'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQYN'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQYNDAT'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQDEC'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'REQYNENO'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'CREATE_DT'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'CREATE_TM'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'CUSER'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'UPDATE_DT'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'UPDATE_TM'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+  GS_FIELD_CAT-FIELDNAME = 'UUSER'.
+  GS_FIELD_CAT-NO_OUT = 'X'.
+  APPEND GS_FIELD_CAT TO GT_FIELD_CAT.
+  CLEAR GS_FIELD_CAT.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_HANDLER.
+
+  CREATE OBJECT GO_HANDLER.
+
+  SET HANDLER : GO_HANDLER-&gt;HANDLE_TOOLBAR FOR GO_GRID,
+                GO_HANDLER-&gt;HANDLE_USER_COMMAND FOR GO_GRID.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form toolbar</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM TOOLBAR  USING PC_OBJECT TYPE REF TO CL_ALV_EVENT_TOOLBAR_SET.
+
+  IF GV_CHECK IS INITIAL. " 라디오 버튼 '확정'이 눌리지 않은 경우
+
+    DATA : LS_BUTTON TYPE STB_BUTTON.
+
+    " 세로 줄 추가
+    LS_BUTTON-BUTN_TYPE = 3.
+    INSERT LS_BUTTON INTO TABLE PC_OBJECT-&gt;MT_TOOLBAR.
+
+    CLEAR LS_BUTTON.
+    LS_BUTTON-FUNCTION = 'UPDATE'.
+    LS_BUTTON-QUICKINFO = '구매요청확정자를 필수로 입력해주세요.'.
+    LS_BUTTON-ICON      = ICON_LED_YELLOW.
+    LS_BUTTON-TEXT = '확정을 위한 구매요청확정자 입력'.
+    INSERT LS_BUTTON INTO TABLE PC_OBJECT-&gt;MT_TOOLBAR.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT.
+
+  GS_LAYOUT-GRID_TITLE = '구매요청 조회/등록'.
+  GS_LAYOUT-SEL_MODE = 'A'.
+  GS_LAYOUT-ZEBRA = 'X'.
+
+  "LIGHT 추가
+  GS_LAYOUT-EXCP_FNAME = 'LIGHT'.
+  GS_LAYOUT-EXCP_LED = 'X'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM GET_DATA.
+
+  CLEAR GV_WHERE1.
+  CLEAR GV_WHERE2.
+  CLEAR GV_WHERE3.
+  CLEAR GV_WHERE4.
+
+  IF ZBBT_MM040-PURREQNO IS NOT INITIAL.
+    GV_WHERE1 = `A~PURREQNO = ZBBT_MM040-PURREQNO`.
+  ELSE.
+    GV_WHERE1 = ``.
+  ENDIF.
+  IF ZBBT_MM040-MATNO IS NOT INITIAL.
+    GV_WHERE2 = `A~MATNO = ZBBT_MM040-MATNO`.
+  ELSE.
+    GV_WHERE2 = ``.
+  ENDIF.
+  IF ZBBT_MM040-VENNO IS NOT INITIAL.
+    GV_WHERE3 = `A~VENNO = ZBBT_MM040-VENNO`.
+  ELSE.
+    GV_WHERE3 = ``.
+  ENDIF.
+  IF ZBBT_MM040-REQDATE IS NOT INITIAL.
+    GV_WHERE4 = `A~REQDATE = ZBBT_MM040-REQDATE`.
+  ELSE.
+    GV_WHERE4 = ``.
+  ENDIF.
+
+  SELECT A~PURREQNO
+         A~VENNO
+         A~MATNO
+         B~MATNM
+         A~QUANTITY
+         A~UNIT
+         B~LEADTIME
+         A~REQTXT
+         A~REQSUB
+         A~REQDATE
+         A~REQENO
+    INTO CORRESPONDING FIELDS OF TABLE GT_MM040
+    FROM ZBBT_MM040 AS A
+    INNER JOIN ZBBT_MM020 AS B
+    ON A~MATNO = B~MATNO
+    WHERE (GV_WHERE1)
+    AND (GV_WHERE2)
+    AND (GV_WHERE3)
+    AND (GV_WHERE4)
+    AND (GV_WHERE5).
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form MAKE_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM MAKE_DATA.
+
+  CLEAR GS_MM040.
+
+  LOOP AT GT_MM040 INTO GS_MM040.
+    IF GS_MM040-REQENO IS INITIAL.
+      GS_MM040-REQSUB = '0'. " 미확정
+      GS_MM040-LIGHT = '1'. " 미확정
+    ELSEIF GS_MM040-REQSUB = '1' AND " 확정
+      GS_MM040-REQENO IS NOT INITIAL.
+      GS_MM040-LIGHT = '3'. " 확정
+    ENDIF.
+
+    SELECT SINGLE VENNM FROM ZBBT_MM030 INTO GS_MM040-VENNM WHERE VENNO EQ GS_MM040-VENNO.
+    SELECT SINGLE EMPNM FROM ZBBT_HR020 INTO GS_MM040-EMPNM WHERE EMPNO EQ GS_MM040-REQENO.
+
+    MODIFY GT_MM040
+    FROM GS_MM040
+    TRANSPORTING REQSUB LIGHT VENNM EMPNM.
+
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form user_command</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_UCOMM</font>
+<font color ="#0000FF">*&      --&gt; GV_ROW</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM USER_COMMAND USING PE_UCOMM TYPE SY-UCOMM.
+
+  DATA : LV_RED TYPE STRING.
+
+  CASE PE_UCOMM.
+    WHEN 'UPDATE'.
+
+      CLEAR GS_MM040.
+
+      LOOP AT GT_MM040 INTO GS_MM040.
+
+        IF GS_MM040-LIGHT = 1 OR GS_MM040-LIGHT = 2. " 미확정 혹은 입력은 되었지만 확정되지 않은 행이 있다면
+          LV_RED = 'X'. " 해당 변수에 'X'를 입력
+          EXIT. " LOOP 즉시 탈출
+        ENDIF.
+
+      ENDLOOP.
+
+      IF LV_RED IS INITIAL.
+        MESSAGE I158 DISPLAY LIKE 'E'. " 입력 가능한 행이 없습니다.
+        EXIT.
+      ENDIF.
+
+      CALL SCREEN 110 STARTING AT 10 10. " 구매요청확정자 입력 팝업
+
+  ENDCASE.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form update_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM UPDATE_DATA.
+
+  DATA : LV_REQENO TYPE ZBBT_MM040-REQENO.
+
+  IF ZBBT_MM040-REQENO IS INITIAL.
+    MESSAGE I131 DISPLAY LIKE 'E'. " 구매요청확정자를 입력해주세요.
+    LEAVE TO SCREEN 110.
+
+  ELSE.
+    SELECT SINGLE EMPNO INTO LV_REQENO FROM ZBBT_HR020 WHERE EMPNO = ZBBT_MM040-REQENO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+
+      CLEAR ZBBT_MM040-REQENO.
+      MESSAGE I130 DISPLAY LIKE 'E'. " 구매요청확정자가 존재하지 않습니다.
+      LEAVE TO SCREEN 110.
+
+    ELSE.
+
+      CLEAR GT_ROWS.
+      CLEAR GS_ROW.
+      CLEAR GS_MM040.
+
+      CALL METHOD GO_GRID-&gt;GET_SELECTED_ROWS
+        IMPORTING
+          ET_INDEX_ROWS = GT_ROWS.
+
+      DESCRIBE TABLE GT_ROWS LINES SY-TFILL.
+
+      IF SY-TFILL = 0. " 선택한 행이 없는 경우
+
+        LOOP AT GT_MM040 INTO GS_MM040.
+
+          IF GS_MM040-LIGHT = 1. " 미확정
+
+            GS_MM040-REQENO = ZBBT_MM040-REQENO.
+
+            IF GS_MM040-REQENO IS NOT INITIAL.
+
+              GS_MM040-LIGHT = '2'. " 수정
+
+              SELECT SINGLE EMPNM FROM ZBBT_HR020 INTO GS_MM040-EMPNM WHERE EMPNO EQ GS_MM040-REQENO.
+
+              MODIFY GT_MM040 FROM GS_MM040 TRANSPORTING REQENO EMPNM LIGHT.
+
+            ENDIF.
+
+          ENDIF.
+
+        ENDLOOP.
+
+      ELSE. " 선택한 행이 있는 경우
+        LOOP AT GT_ROWS INTO GS_ROW.
+
+          READ TABLE GT_MM040 INTO GS_MM040 INDEX GS_ROW-INDEX.
+
+          GS_MM040-REQENO = ZBBT_MM040-REQENO.
+
+          IF GS_MM040-REQENO IS NOT INITIAL.
+
+            GS_MM040-LIGHT = '2'. " 수정
+
+            SELECT SINGLE EMPNM FROM ZBBT_HR020 INTO GS_MM040-EMPNM WHERE EMPNO EQ GS_MM040-REQENO.
+
+            MODIFY GT_MM040 FROM GS_MM040 INDEX GS_ROW-INDEX.
+
+          ENDIF.
+
+        ENDLOOP.
+      ENDIF.
+
+    ENDIF.
+  ENDIF.
+
+  IF SY-SUBRC = 0.
+    CLEAR ZBBT_MM040-REQENO.
+    MESSAGE S067. " 입력되었습니다. 확정 버튼을 눌러 확정을 진행해주세요.
+    PERFORM REFRESH_GRID.
+  ELSE.
+    CLEAR ZBBT_MM040-REQENO.
+    MESSAGE E071. " 입력에 실패했습니다.
+    LEAVE SCREEN.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form save_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SAVE_DATA.
+
+  DATA : LV_ANSWER TYPE STRING.
+  DATA : LV_ERR.   " 에러 유무를 확인하고자 하는 플래그 변수
+  DATA : LV_YELLOW. " 경고(노란 불) 유무를 확인 위한 플래그 변수
+
+  CLEAR GT_ROWS.
+  CLEAR GS_ROW.
+  CLEAR GS_MM040.
+
+  " 선택한 행 확인
+  CALL METHOD GO_GRID-&gt;GET_SELECTED_ROWS
+    IMPORTING
+      ET_INDEX_ROWS = GT_ROWS.
+
+  DESCRIBE TABLE GT_ROWS LINES SY-TFILL.
+
+  IF SY-TFILL = 0.  " 선택한 행 X.
+
+    " 전체 대상으로 저장 대기 중인 데이터 (노란 불) 가 있는지 확인
+    " 하나라도 존재해야 팝업
+    " 그렇지 않으면 메세지
+
+    LOOP AT GT_MM040 INTO GS_MM040.
+
+      IF GS_MM040-LIGHT = 2.
+        LV_YELLOW = 'X'.
+        EXIT.   "LOOP 즉시 탈출
+      ENDIF.
+
+    ENDLOOP.
+
+    IF LV_YELLOW IS INITIAL. " 저장 대기 중인 데이터가 없는 경우
+      MESSAGE I064 DISPLAY LIKE 'E'. " 확정 가능한 행이 없습니다.
+      EXIT.
+    ENDIF.
+
+    PERFORM POPUP_TO_CONFIRM CHANGING LV_ANSWER. " 저장 대기 중인 데이터가 있는 경우에만
+
+    CASE LV_ANSWER.
+      WHEN 1.
+        PERFORM SAVE_MM040. " 저장 대기 중인 데이터만 DB에 저장
+
+      WHEN OTHERS.
+        MESSAGE S010. " 취소되었습니다.
+        EXIT.
+
+    ENDCASE.
+
+  ELSE.
+
+    " 선택한 데이터 중에 저장 대기 데이터 (노란 불) 가 있는지 확인
+    LOOP AT GT_ROWS INTO GS_ROW.
+
+      READ TABLE GT_MM040 INTO GS_MM040 INDEX GS_ROW-INDEX.
+
+      IF GS_MM040-LIGHT &lt;&gt; 2. " 노란 불이 아닌 게 하나라도 있는 경우
+        MESSAGE I065 DISPLAY LIKE 'E'. " 구매요청확정자를 입력하지 않았거나 이미 확정된 행은 확정되지 않습니다.
+        LV_ERR  = 'X'.
+        EXIT.   "LOOP 즉시 탈출
+      ENDIF.
+
+    ENDLOOP.
+
+    CHECK LV_ERR IS INITIAL.    " 에러 즉, 노란 불이 아닌 게 없는 경우에만 또는 노란 불만 있는 경우
+
+    PERFORM POPUP_TO_CONFIRM CHANGING LV_ANSWER.
+
+    CASE LV_ANSWER.
+      WHEN 1.
+        PERFORM SAVE_MM040_2.
+
+      WHEN OTHERS.
+        MESSAGE S010. " 취소되었습니다.
+        EXIT.
+
+    ENDCASE.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form refresh_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM REFRESH_GRID .
+  CALL METHOD GO_GRID-&gt;REFRESH_TABLE_DISPLAY( ).
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form POPUP_TO_CONFIRM</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      &lt;-- LV_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM POPUP_TO_CONFIRM  CHANGING PV_ANSWER TYPE STRING.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '확정'
+      TEXT_QUESTION         = '확정하시겠습니까?'
+      TEXT_BUTTON_1         = '네'
+      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'
+      TEXT_BUTTON_2         = '아니오'
+      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'
+      DEFAULT_BUTTON        = '1'
+      DISPLAY_CANCEL_BUTTON = ' '
+      START_COLUMN          = 25
+      START_ROW             = 15
+    IMPORTING
+      ANSWER                = PV_ANSWER
+    EXCEPTIONS
+      OTHERS                = 1.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form save_mm040</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SAVE_MM040. " 행을 선택하지 않은 경우
+
+  DATA: LS_MM040 TYPE ZBBT_MM040.
+  DATA: LT_MM040 TYPE TABLE OF ZBBT_MM040.
+
+  CLEAR GS_MM040.
+
+  LOOP AT GT_MM040 INTO GS_MM040.
+
+    IF GS_MM040-LIGHT = '2'. " 수정
+
+      GS_MM040-LIGHT     = '3'. " 확정
+      GS_MM040-REQSUB    = '1'. " 확정
+      GS_MM040-REQDATE   = SY-DATUM.
+      GS_MM040-UPDATE_DT = SY-DATUM.
+      GS_MM040-UPDATE_TM = SY-UZEIT.
+      GS_MM040-UUSER = SY-UNAME.
+      GS_MM040-REQYN = '0'.
+
+      " 조회용 인터널 테이블을 갱신
+      MODIFY GT_MM040 FROM GS_MM040.
+
+      " DB 저장용 인터널 테이블에 적재
+      MOVE-CORRESPONDING GS_MM040 TO LS_MM040.
+      APPEND LS_MM040 TO LT_MM040.
+    ENDIF.
+
+  ENDLOOP.
+
+  MODIFY ZBBT_MM040 FROM TABLE LT_MM040.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    ROLLBACK WORK.
+    MESSAGE S063 DISPLAY LIKE 'E'. " 확정에 실패했습니다.
+  ELSE.
+    IF LT_MM040 IS NOT INITIAL.
+      MESSAGE S072. " 확정에 성공했습니다.
+    ELSE.
+      MESSAGE S064 DISPLAY LIKE 'E'. " 확정 가능한 행이 없습니다.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+FORM SAVE_MM040_2. " 행 선택을 한 경우
+
+  DATA: LS_MM040 TYPE ZBBT_MM040.
+  DATA: LT_MM040 TYPE TABLE OF ZBBT_MM040.
+
+  LOOP AT GT_ROWS INTO GS_ROW.
+
+    READ TABLE GT_MM040 INTO GS_MM040 INDEX GS_ROW-INDEX.
+
+    IF GS_MM040-LIGHT = '2'. " 수정
+
+      GS_MM040-LIGHT     = '3'. " 확정
+      GS_MM040-REQSUB    = '1'. " 확정
+      GS_MM040-REQDATE   = SY-DATUM.
+      GS_MM040-UPDATE_DT = SY-DATUM.
+      GS_MM040-UPDATE_TM = SY-UZEIT.
+      GS_MM040-UUSER = SY-UNAME.
+      GS_MM040-REQYN = '0'.
+
+      " 조회용 인터널 테이블을 갱신
+      MODIFY GT_MM040 FROM GS_MM040 INDEX GS_ROW-INDEX.
+
+      " DB 저장용 인터널 테이블에 적재
+      MOVE-CORRESPONDING GS_MM040 TO LS_MM040.
+      APPEND LS_MM040 TO LT_MM040.
+    ENDIF.
+
+  ENDLOOP.
+
+  MODIFY ZBBT_MM040 FROM TABLE LT_MM040.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    ROLLBACK WORK.
+    MESSAGE S063 DISPLAY LIKE 'E'. " 확정에 실패했습니다.
+  ELSE.
+    IF LT_MM040 IS NOT INITIAL.
+      MESSAGE S072. " 확정에 성공했습니다.
+    ELSE.
+      MESSAGE S064 DISPLAY LIKE 'E'. " 확정 가능한 행이 없습니다.
+    ENDIF.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form RADIO_BUTTON</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM RADIO_BUTTON.
+
+  IF GT_MM040 IS NOT INITIAL. " 조회된 게 있는 경우,
+
+    IF OK_CODE = 'RBFC1'. " 라디오 버튼만 조작하는 거라면,
+      EXIT. " 변하는 것 없이 즉시 탈출.
+
+    ELSEIF OK_CODE = 'FC1'. " 다시 조회 버튼을 눌러 새로 데이터를 불러오는 경우
+
+      CLEAR GV_WHERE5.
+      CLEAR GV_CHECK.
+
+      CASE GC_MARK.
+        WHEN RB2.
+          GV_WHERE5 = `A~REQSUB = '0'`. " 미확정
+        WHEN RB3.
+          GV_WHERE5 = `A~REQSUB = '1'`. " 확정
+          GV_CHECK = 'X'. " 라디오 버튼 '확정'을 누르고 조회하면 GV_CHECK에 값이 들어가서 이를 기준으로 화면의 버튼이 나머지와는 다르게 출력됨.
+        WHEN OTHERS.
+          GV_WHERE5 = ``. " 전체
+      ENDCASE.
+
+    ENDIF.
+
+  ELSEIF GT_MM040 IS INITIAL. " 조회된 게 없는 상태에서 라디오 버튼만 누르거나 처음 조회 버튼을 누른 경우
+
+    CLEAR GV_WHERE5.
+    CLEAR GV_CHECK.
+
+    CASE GC_MARK.
+      WHEN RB2.
+        GV_WHERE5 = `A~REQSUB = '0'`.
+      WHEN RB3.
+        GV_WHERE5 = `A~REQSUB = '1'`.
+        GV_CHECK = 'X'.
+      WHEN OTHERS.
+        GV_WHERE5 = ``.
+    ENDCASE.
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form DISPLAY_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM DISPLAY_DATA.
+
+  DATA LV_LIN TYPE I.
+
+  DESCRIBE TABLE GT_MM040 LINES LV_LIN.
+
+  IF GT_MM040 IS NOT INITIAL.
+    MESSAGE S009 WITH LV_LIN. " &건의 데이터 조회에 성공했습니다.
+  ELSE.
+    MESSAGE S029 DISPLAY LIKE 'E'. " 데이터가 존재하지 않습니다.
+    LEAVE TO LIST-PROCESSING.
+  ENDIF.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

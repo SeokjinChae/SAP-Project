@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM090_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM090_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_MM090_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_MM090_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+MODULE EXIT INPUT.
+
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+
+ENDMODULE.
+
+MODULE USER_COMMAND_0100 INPUT.
+
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      SET SCREEN 0.
+    WHEN 'REFRESH'.
+      CLEAR ZBBT_MM030.
+<font color ="#0000FF">*      CLEAR GT_PURORD2.</font>
+<font color ="#0000FF">*      PERFORM REFRESH_ALV_GRID2.</font>
+  ENDCASE.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

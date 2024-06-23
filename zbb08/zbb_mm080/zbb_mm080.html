@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM080</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM080</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-MM] 구매요청 승인</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& REPORT ZBB_MM080</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_MM080</font>
+<font color ="#0000FF">*& DESCRIPTION : [MM] 구매요청 승인</font>
+<font color ="#0000FF">*& MODULE      : MM</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-08 (김한빈)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.05.20</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE           DESCRIPTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& ACA2-08        2024.05.20      신규 개발</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+REPORT ZBB_MM080 MESSAGE-ID ZBB_MSG.
+
+include <a href ="zbb_mm080_top.html">ZBB_MM080_TOP</a>.
+include <a href ="zbb_mm080_c01.html">ZBB_MM080_C01</a>.
+
+include <a href ="zbb_mm080_o01.html">ZBB_MM080_O01</a>.
+include <a href ="zbb_mm080_i01.html">ZBB_MM080_I01</a>.
+include <a href ="zbb_mm080_e01.html">ZBB_MM080_E01</a>.
+include <a href ="zbb_mm080_f01.html">ZBB_MM080_F01</a>.
+
+<font color ="#0000FF">*GUI Texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* TITLE_0100 --&gt; [SAP ssarum-MM] 구매요청 승인</font>
+<font color ="#0000FF">* TITLE_0110 --&gt; 구매요청 승인/반려</font>
+<font color ="#0000FF">* TITLE_0120 --&gt; 구매요청반려사유</font>
+<font color ="#0000FF">* TITLE_0130 --&gt; 구매요청 전체 승인</font>
+
+<font color ="#0000FF">*Text elements</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* 001 KRW</font>
+<font color ="#0000FF">* 002 조회조건</font>
+
+
+<font color ="#0000FF">*Selection texts</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">* PA_APP         승인</font>
+<font color ="#0000FF">* PA_NAPP         반려</font>
+<font color ="#0000FF">* PA_WAIT         대기</font>
+<font color ="#0000FF">* SO_MAT         자재코드</font>
+<font color ="#0000FF">* SO_PNO         구매요청번호</font>
+<font color ="#0000FF">* SO_RDT         구매요청일자</font>
+<font color ="#0000FF">* SO_VEN         거래처번호</font>
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*009   &건의 데이터 조회에 성공했습니다.</font>
+<font color ="#0000FF">*010   취소되었습니다.</font>
+<font color ="#0000FF">*029   데이터가 존재하지 않습니다.</font>
+<font color ="#0000FF">*102   ALV 생성에 실패했습니다.</font>
+<font color ="#0000FF">*137   승인/반려할 행을 선택해주세요.</font>
+<font color ="#0000FF">*138   승인/반려할 하나의 행을 선택하세요.</font>
+<font color ="#0000FF">*140   승인에 실패했습니다.</font>
+<font color ="#0000FF">*141   승인 가능한 행이 없습니다.</font>
+<font color ="#0000FF">*150   반려에 실패했습니다.</font>
+<font color ="#0000FF">*151   반려에 성공했습니다.</font>
+<font color ="#0000FF">*152   반려 가능한 행이 없습니다.</font>
+<font color ="#0000FF">*153   반려 취소할 행을 선택해주세요.</font>
+<font color ="#0000FF">*154   반려 취소에 실패했습니다.</font>
+<font color ="#0000FF">*155   반려 취소에 성공했습니다.</font>
+<font color ="#0000FF">*156   반려 취소 가능한 행이 없습니다.</font>
+<font color ="#0000FF">*157   반려 취소할 하나의 행을 선택하세요.</font>
+<font color ="#0000FF">*159   구매요청반려사유를 입력해주세요.</font>
+<font color ="#0000FF">*160   구매요청승인/반려자를 입력해주세요.</font>
+<font color ="#0000FF">*161   승인에 성공하여 전표가 생성되었습니다.</font>
+<font color ="#0000FF">*162   구매요청승인/반려자가 존재하지 않습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

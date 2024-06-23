@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD095_C01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD095_C01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_C01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD090_C01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+CLASS LCL_EVENT_HANDLER DEFINITION.
+  PUBLIC SECTION.
+
+    CLASS-DATA : GV_ROWID TYPE LVC_T_ROID.
+
+    CLASS-METHODS : HANDLE_TOOLBAR_HEADER
+      FOR EVENT TOOLBAR
+      OF CL_GUI_ALV_GRID
+      IMPORTING E_OBJECT E_INTERACTIVE.
+
+    CLASS-METHODS : HANDLE_TOOLBAR_ITEM
+      FOR EVENT TOOLBAR
+      OF CL_GUI_ALV_GRID
+      IMPORTING E_OBJECT E_INTERACTIVE.
+
+    CLASS-METHODS : HANDLE_USER_COMMAND
+      FOR EVENT USER_COMMAND
+      OF CL_GUI_ALV_GRID
+      IMPORTING E_UCOMM.
+
+
+ENDCLASS.
+
+CLASS LCL_EVENT_HANDLER IMPLEMENTATION.
+
+  METHOD HANDLE_TOOLBAR_HEADER.
+    PERFORM TOOLBAR_HEADER USING E_OBJECT.
+  ENDMETHOD.
+
+  METHOD HANDLE_TOOLBAR_ITEM.
+    PERFORM TOOLBAR_ITEM USING E_OBJECT.
+  ENDMETHOD.
+
+  METHOD HANDLE_USER_COMMAND.
+    PERFORM USER_COMMAND USING E_UCOMM GV_ROWID.
+  ENDMETHOD.
+ENDCLASS.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

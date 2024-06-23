@@ -1,0 +1,519 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD110_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD110_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_RSKELETON_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_RSKELETON_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form exit</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM exit .
+  CASE ok_code.
+    WHEN 'BACK'.
+      SET SCREEN 0.
+    WHEN 'CANCEL'.
+<font color ="#0000FF">*      CLEAR</font>
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_data .
+  SELECT * FROM zbbt_sd040
+    INTO CORRESPONDING FIELDS OF TABLE gt_SD040
+    WHERE orderty = '1'
+    AND custno IN so_cusno
+    AND orderno IN so_ordno.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form make_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM  make_data.
+
+  DATA: lv_months TYPE i.
+
+  LOOP AT gt_sd060 INTO gs_sd060.
+    " 1) 라이트 적용
+    IF gs_sd060-SUBEND - sy-datum =&lt; 90 .
+      gs_sd060-light = '1'. "빨간색
+    ELSEIF gs_sd060-SUBEND - sy-datum &gt; 60 AND gs_sd060-SUBEND - sy-datum =&lt; 180.
+      gs_sd060-light = '2'. "노란색
+    ELSE.
+      gs_sd060-light = '3'. "초록색
+    ENDIF.
+    MODIFY gt_sd060 FROM gs_sd060 TRANSPORTING light.
+  ENDLOOP.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_data .
+  DESCRIBE TABLE gt_SD040. "건수(sy-tfill)
+  "gt_flights에 이미 값이 있으면 새로 불러오지 않음
+  IF gt_SD040 IS NOT INITIAL.
+    CALL SCREEN 100.
+  ELSE.
+    MESSAGE '일치하는 데이터가 없습니다.' TYPE 'S' DISPLAY LIKE 'E'. "type(1) + id(3)
+    LEAVE TO LIST-PROCESSING AND RETURN TO SCREEN 0.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form create_container</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM create_container .
+
+   CREATE OBJECT go_dock_cont01
+    EXPORTING
+      container_name = 'AREA'
+    EXCEPTIONS
+      OTHERS         = 1.
+
+  IF sy-subrc &lt;&gt; 0.
+    MESSAGE a010(bc405_408).
+  ENDIF.
+
+  CREATE OBJECT go_split
+    EXPORTING
+      parent = go_dock_cont01
+      rows = 2                 " 몇 개의 가로(행) 분할 할 것인지 "
+      columns = 1.             " 몇 개의 세로(열) 분할 할 것인지 "
+
+  CALL METHOD go_split-&gt;get_container
+    EXPORTING
+      row       = 1
+      column    = 1
+    RECEIVING
+      container = go_cont01.
+
+  CALL METHOD go_split-&gt;get_container
+    EXPORTING
+      row       = 2
+      column    = 1
+    RECEIVING
+      container = go_cont02.
+
+
+  CREATE OBJECT go_grid01
+    EXPORTING
+      i_parent = go_cont01.
+
+  CREATE OBJECT go_grid02
+    EXPORTING
+      i_parent = go_cont02.
+
+  CALL METHOD go_split-&gt;set_row_height
+    EXPORTING
+      id = 1
+      height = 60.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_layout .
+
+  gs_layout-grid_title = '구독 고객 조회'.
+  gs_layout-zebra      = 'X'. "행 얼룩무늬
+  gs_layout-sel_mode    = 'A'.
+  gs_layout-cwidth_opt  = 'X'. "열 너비 최적화
+
+  gs_layout2-cwidth_opt  = 'X'. "열 너비 최적화
+  gs_layout2-grid_title = '구독 고객 상세 조회'.
+  gs_layout2-zebra = 'X'.
+  gs_layout2-sel_mode    = 'A'.
+  gs_layout2-excp_fname = 'LIGHT'.
+  gs_layout2-excp_led = 'X'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_fcat</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_fcat .
+
+  gs_fcat-fieldname = 'LIGHT'.
+  gs_fcat-coltext = '상태'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDERDATE'.
+  gs_fcat-col_pos = 1.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDERTY'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'PAYIN'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CUSTNO'.
+  gs_fcat-col_pos = 2.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDERNO'.
+  gs_fcat-col_pos = 3.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CREATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CREATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UPDATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UPDATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDERTY_TXT'.
+  gs_fcat-col_pos = 10.
+  gs_fcat-coltext = '주문유형'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDCANCELLED'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'ORDSTAT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBORDSTAT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBORDSTAT_TXT'.
+  gs_fcat-col_pos = 11.
+  gs_fcat-coltext = '구독주문상태'.
+  APPEND gs_fcat TO gt_fcat.
+  CLEAR gs_fcat.
+
+<font color ="#0000FF">*-----------------------------------위 아래---------------------------------*</font>
+
+  gs_fcat-fieldname = 'SUBNO'.
+  gs_fcat-outputlen = 10.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBQUANTITY'.
+  gs_fcat-outputlen = 10.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBDATE'.
+  gs_fcat-outputlen = 10.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'LEFTSUB'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CREATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CREATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'CUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UPDATE_DT'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UPDATE_TM'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'UUSER'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBNM'.
+  gs_fcat-col_pos = 4.
+  gs_fcat-coltext = '구독제품명'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBEXP'.
+  gs_fcat-no_out = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+
+  gs_fcat-fieldname = 'SUBPTOTAL'.
+  gs_fcat-do_sum    = 'X'.
+  APPEND gs_fcat TO gt_fcat2.
+  CLEAR gs_fcat.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid .
+  IF go_grid01 IS NOT INITIAL.
+  CALL METHOD go_grid01-&gt;set_table_for_first_display
+  EXPORTING
+    i_buffer_active = 'X'
+    i_bypassing_buffer = 'X'
+    i_structure_name = 'ZBBT_SD040'
+    i_save = 'A'
+    is_layout        = gs_layout
+    CHANGING
+     it_outtab = gt_sd040
+     it_fieldcatalog  = gt_fcat
+     it_sort = gt_sort.
+ENDIF.
+
+ENDFORM.
+
+FORM on_user_command  USING    p_e_ucomm
+                               p_gv_rowid.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_variant</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_variant .
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_event_handler</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_event_handler .
+  CREATE OBJECT go_handler.
+  SET HANDLER : go_handler-&gt;handle_double_click FOR go_grid01.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form double_click</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; E_ROW</font>
+<font color ="#0000FF">*&      --&gt; E_COLUMN</font>
+<font color ="#0000FF">*&      --&gt; ES_ROW_NO</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM double_click  USING    pv_row TYPE lvc_s_row
+                            pv_column
+                            pv_row_no TYPE lvc_s_roid.
+
+  READ TABLE gt_sd040 INTO gs_sd040 INDEX pv_row_no-row_id.
+
+  SELECT *
+    INTO CORRESPONDING FIELDS OF TABLE gt_sd060
+    FROM zbbt_sd060 AS a
+    INNER JOIN zbbt_sd020 AS b
+    ON a~subno = b~subno
+    WHERE a~orderno = gs_sd040-orderno.
+
+  PERFORM make_data.
+  PERFORM display_grid_bot.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form display_grid_bot</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM display_grid_bot .
+
+IF go_grid02 IS NOT INITIAL.
+    CALL METHOD go_grid02-&gt;set_table_for_first_display
+  EXPORTING
+    i_buffer_active = 'X'
+    i_bypassing_buffer = 'X'
+    i_structure_name = 'ZBBT_SD060'
+    i_save = 'A'
+    is_layout        = gs_layout2
+    CHANGING
+     it_outtab = gt_sd060
+     it_fieldcatalog  = gt_fcat2
+     it_sort = gt_sort2.
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form set_sorting</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM set_sorting .
+
+  gs_sort-fieldname = 'ORDERDATE'.
+  gs_sort-spos      = 1.
+  APPEND gs_sort TO gt_sort.
+
+  gs_sort-fieldname = 'SUBNO'.
+  gs_sort-spos      = 1.
+  APPEND gs_sort TO gt_sort2.
+
+<font color ="#0000FF">*  gs_sort-fieldname = 'CUSTNO'.</font>
+<font color ="#0000FF">*  gs_sort-spos      = 1.</font>
+<font color ="#0000FF">*  APPEND gs_sort TO gt_sort2.</font>
+
+<font color ="#0000FF">*  gs_sort-fieldname = 'LIGHT'.</font>
+<font color ="#0000FF">*  gs_sort-spos      = 1.</font>
+<font color ="#0000FF">*  APPEND gs_sort TO gt_sort2.</font>
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form get_domain_value</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM get_domain_value .
+
+  LOOP AT gt_sd040 INTO gs_sd040.
+
+    CALL FUNCTION 'STF4_GET_DOMAIN_VALUE_TEXT'
+      EXPORTING
+        iv_domname    = 'ZBBD_ORDERTY'
+        iv_value      = gs_sd040-orderty
+      IMPORTING
+        ev_value_text = gs_sd040-orderty_txt.
+
+    MODIFY gt_sd040 FROM gs_sd040 TRANSPORTING orderty_txt.
+
+  ENDLOOP.
+
+<font color ="#0000FF">*  LOOP AT gt_sd040 INTO gs_sd040.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    CALL FUNCTION 'STF4_GET_DOMAIN_VALUE_TEXT'</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        iv_domname    = 'ZBBD_ORDSTAT'</font>
+<font color ="#0000FF">*        iv_value      = gs_sd040-ORDSTAT</font>
+<font color ="#0000FF">*      IMPORTING</font>
+<font color ="#0000FF">*        ev_value_text = gs_sd040-ORDSTAT_txt.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    MODIFY gt_sd040 FROM gs_sd040 TRANSPORTING ORDSTAT_txt.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDLOOP.</font>
+
+    LOOP AT gt_sd040 INTO gs_sd040.
+
+    CALL FUNCTION 'STF4_GET_DOMAIN_VALUE_TEXT'
+      EXPORTING
+        iv_domname    = 'ZBBD_SUBORDSTAT'
+        iv_value      = gs_sd040-SUBORDSTAT
+      IMPORTING
+        ev_value_text = gs_sd040-SUBORDSTAT_txt.
+
+    MODIFY gt_sd040 FROM gs_sd040 TRANSPORTING SUBORDSTAT_txt.
+
+  ENDLOOP.
+
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

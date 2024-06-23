@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD090_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD090_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD090_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+TABLES : ZBBT_SD040, ZBBT_SD050, ZBBT_MM090, ZBBT_MM100, ZBBT_PP020, ZBBT_PP030. " 주문(헤더) 테이블, 일반주문(아이템) 테이블, 재고현황 테이블
+DATA : OK_CODE TYPE SY-UCOMM.
+TYPE-POOLS : ICON, COL.
+
+DATA : GT_SD040 TYPE TABLE OF ZBBT_SD040,
+       GS_SD040 LIKE LINE OF GT_SD040.
+
+DATA : GT_SD040_TEMP LIKE GT_SD040.
+DATA : GS_SD040_TEMP LIKE GS_SD040.
+
+DATA : GT_SD040_PRE LIKE GT_SD040. " 새로고침할 때, 직전의 SD040 전체 담아두기
+DATA : GS_SD040_PRE LIKE GS_SD040.
+
+DATA : GT_SD040_NOW LIKE GT_SD040. " 새로고침할 때, 직후의 SD040 전체 담아두기
+DATA : GS_SD040_NOW LIKE GS_SD040.
+
+DATA : GT_SD050 TYPE TABLE OF ZBBT_SD050,
+       GS_SD050 LIKE LINE OF GT_SD050.
+
+DATA : GT_MM090 TYPE TABLE OF ZBBT_MM090,
+       GS_MM090 LIKE LINE OF GT_MM090.
+
+DATA : GT_PP020 TYPE TABLE OF ZBBT_PP020,
+       GS_PP020 LIKE LINE OF GT_PP020.
+
+DATA : GT_PP030 TYPE TABLE OF ZBBT_PP030,
+       GS_PP030 LIKE LINE OF GT_PP030.
+
+DATA : GT_INDEX     TYPE LVC_T_ROW, "ALV 선택라인 저장 인터널테이블
+       GS_INDEX     LIKE LINE OF GT_INDEX, "ALV 선택라인 저장 스트럭쳐
+       GV_LINES     TYPE I, "선택한 라인수를 저장할 변수
+       GV_ORDSTAT   TYPE C,
+       GV_ISCHANGED TYPE C. " 테이블이 달라졌는지 표시하는 지표
+
+<font color ="#0000FF">* 이게 맞아?</font>
+DATA : LV_PPLANDATE LIKE SY-DATUM.
+DATA : LV_NR TYPE C LENGTH 13. "  넘버레인지 받을 변수
+DATA : LV_NR_TEMP TYPE C LENGTH 3.
+DATA : LV_DESCRIPTION TYPE C LENGTH 255.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">* DISPLAY0 :</font>
+<font color ="#0000FF">* 검색 직후 상단 그리드에 출력되는 주문 헤더 데이터</font>
+DATA : BEGIN OF GS_DISPLAY0,
+
+         ORDSTAT_ICON  LIKE ICON-ID,
+         MQSTAT_ICON   LIKE ICON-ID, " 주문 건에 해당하는 완제품들의 재고현황 (한 주문 헤더에서 한 아이템이라도 재고가 부족하면 여기서는 빨간불)
+
+         ORDSTAT_TEXT  TYPE C LENGTH 25,
+
+         ORDERNO       LIKE ZBBT_SD040-ORDERNO,
+         CUSTNO        LIKE ZBBT_SD040-CUSTNO,
+         ORDERTY       LIKE ZBBT_SD040-ORDERTY,
+         ORDERDATE     LIKE ZBBT_SD040-ORDERDATE,
+         PTOTAL        LIKE ZBBT_SD040-PTOTAL,
+         CURRENCY      LIKE ZBBT_SD040-CURRENCY,
+         SHIPADD       LIKE ZBBT_SD040-SHIPADD,
+         ORDSTAT       LIKE ZBBT_SD040-ORDSTAT,
+<font color ="#0000FF">*         ORDCANCELLED      LIKE ZBBT_SD040-ORDCANCELLED,</font>
+<font color ="#0000FF">*         ORDCANCELLED_ICON LIKE ICON-ID,</font>
+
+         IT_CELL_COLOR TYPE LVC_T_SCOL, " 주문상태에 따라 CELL COLOR 구분
+       END OF GS_DISPLAY0.
+DATA : GT_DISPLAY0 LIKE TABLE OF GS_DISPLAY0.
+
+DATA : GT_DISPLAY0_TEMP LIKE GT_DISPLAY0.
+DATA : GS_DISPLAY0_TEMP LIKE GS_DISPLAY0.
+
+DATA : GT_DISPLAY0_PRE LIKE GT_DISPLAY0.
+DATA : GS_DISPLAY0_PRE LIKE GS_DISPLAY0.
+
+<font color ="#0000FF">* DISPLAY1 :</font>
+<font color ="#0000FF">* 상단 그리드에서 특정 행 더블클릭 시 하단 그리드에 출력되는</font>
+<font color ="#0000FF">* 주문 아이템 데이터 (쇼핑몰 주문)</font>
+DATA : BEGIN OF GS_DISPLAY1,
+
+         MQSTAT_ICON   LIKE ICON-ID, " 주문 아이템 각각에 해당하는 완제품들의 재고현황
+
+         ORDERNO       LIKE ZBBT_SD050-ORDERNO,
+         MATNO         LIKE ZBBT_SD050-MATNO,
+         QUANTITY      LIKE ZBBT_SD050-QUANTITY,
+         UNIT          LIKE ZBBT_SD050-UNIT,
+
+         QUANTITY_LACK LIKE ZBBT_MM100-QUANTITY_LACK, " (추가)
+
+         PDTOTAL       LIKE ZBBT_SD050-PDTOTAL,
+         CURRENCY      LIKE ZBBT_SD050-CURRENCY,
+       END OF GS_DISPLAY1.
+DATA : GT_DISPLAY1 LIKE TABLE OF GS_DISPLAY1.
+
+DATA : GT_DISPLAY1_TEMP LIKE GT_DISPLAY1.
+DATA : GS_DISPLAY1_TEMP LIKE GS_DISPLAY1.
+
+DATA : GT_DISPLAY1_PRE LIKE GT_DISPLAY1.
+DATA : GS_DISPLAY1_PRE LIKE GS_DISPLAY1.
+
+<font color ="#0000FF">* 재고 상태 보여주기 목적</font>
+<font color ="#0000FF">*DATA : BEGIN OF GS_MATNO_TOT,</font>
+<font color ="#0000FF">*         MATNO TYPE ZBBT_MM090-MATNO,</font>
+<font color ="#0000FF">*         TOT   TYPE I,</font>
+<font color ="#0000FF">*       END OF GS_MATNO_TOT.</font>
+<font color ="#0000FF">*DATA : GT_MATNO_TOT LIKE TABLE OF GS_MATNO_TOT.</font>
+DATA : GT_MM100 TYPE TABLE OF ZBBT_MM100,
+       GS_MM100 LIKE LINE OF GT_MM100.
+DATA : GT_MM100_TEMP TYPE TABLE OF ZBBT_MM100,
+       GS_MM100_TEMP LIKE LINE OF GT_MM100_TEMP.
+DATA : GT_MM100_NOW TYPE TABLE OF ZBBT_MM100,
+       GS_MM100_NOW LIKE LINE OF GT_MM100_NOW.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : GS_LAYOUT0 TYPE LVC_S_LAYO.
+DATA : GS_LAYOUT1 TYPE LVC_S_LAYO.
+<font color ="#0000FF">*DATA : GS_LAYOUT2 TYPE LVC_S_LAYO.</font>
+
+DATA : GS_CELL_COLOR0 LIKE LINE OF GS_DISPLAY0-IT_CELL_COLOR.
+
+DATA : GT_FCAT0 TYPE LVC_T_FCAT,
+       GS_FCAT0 TYPE LVC_S_FCAT.
+DATA : GT_FCAT1 TYPE LVC_T_FCAT,
+       GS_FCAT1 TYPE LVC_S_FCAT.
+
+DATA : GT_SORTING_CRITERIA0  TYPE LVC_T_SORT,
+       GS_SORTING_CRITERION0 TYPE LVC_S_SORT.
+DATA : GT_SORTING_CRITERIA1  TYPE LVC_T_SORT,
+       GS_SORTING_CRITERION1 TYPE LVC_S_SORT.
+
+DATA : GS_VARI TYPE DISVARIANT,
+       GV_SAVE.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+DATA : GO_CONT_DOCK  TYPE REF TO CL_GUI_DOCKING_CONTAINER,
+       GO_CONT_SPLIT TYPE REF TO CL_GUI_SPLITTER_CONTAINER,
+       GO_CONT_TOP   TYPE REF TO CL_GUI_CONTAINER,
+       GO_CONT_BOT   TYPE REF TO CL_GUI_CONTAINER,
+       GO_GRID0      TYPE REF TO CL_GUI_ALV_GRID, " [상단] 주문 헤더 그리드
+       GO_GRID1      TYPE REF TO CL_GUI_ALV_GRID. " [하단] 쇼핑몰 주문 아이템  그리드
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+
+SELECTION-SCREEN BEGIN OF BLOCK B1 WITH FRAME TITLE TEXT-T01.
+  SELECT-OPTIONS : SO_ONO FOR ZBBT_SD040-ORDERNO.
+  SELECT-OPTIONS : SO_CNO FOR ZBBT_SD040-CUSTNO.
+  SELECT-OPTIONS : SO_OST FOR ZBBT_SD040-ORDSTAT.
+  SELECT-OPTIONS : SO_ODT FOR ZBBT_SD040-ORDERDATE.
+SELECTION-SCREEN END OF BLOCK B1.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

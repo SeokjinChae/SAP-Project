@@ -1,0 +1,159 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD030_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD030_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_SD030_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_SD030_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'STATUS_0100'.
+  SET TITLEBAR 'TITLE_0100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR: OK_CODE, OK_CODE2, OK_CODE3, OK_CODE4, OK_CODE5.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0200 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0200 OUTPUT.
+  SET PF-STATUS 'STATUS_0200'.
+<font color ="#0000FF">* SET TITLEBAR 'xxx'.</font>
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_CONTROL OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_CONTROL OUTPUT.
+  IF GO_CONT1 IS INITIAL AND GO_CONT2 IS INITIAL.   " 이미 컨테이너 생성되어있는지 확인
+    PERFORM INIT_DATA.      " Default 값 세팅
+    PERFORM CREATE_OBJECT.  " Screen 100의 ALV 2개 틀 생성
+    PERFORM SET_LAYOUT.     " Screen 100의 ALV Layout 설정
+<font color ="#0000FF">*    PERFORM SET_HANDLER.</font>
+    PERFORM SET_CATALOG.
+    PERFORM CALL_DISPLAY.
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MODIFY_SCREEN OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 화면 Input, Output 제어</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE MODIFY_SCREEN OUTPUT.
+  IF GV_R1 = 'X'.
+<font color ="#0000FF">*    SET PF-STATUS 'STATUS_0100'.</font>
+    LOOP AT SCREEN.
+      CASE SCREEN-NAME.
+        WHEN 'ZBBT_SD080-MATNO'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+        WHEN 'ZBBT_SD080-QUANTITY'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+      ENDCASE.
+    ENDLOOP.
+  ELSEIF GV_R2 = 'X'.
+    LOOP AT SCREEN.
+      CASE SCREEN-NAME.
+        WHEN 'ZBBT_SD070-SPLANDATE'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+        WHEN 'ZBBT_SD070-SPLANY'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+        WHEN 'ZBBT_SD070-SPLANM'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+        WHEN 'ZBBT_SD070-SPLANTXT'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+        WHEN 'ZBBT_SD070-EMPNO'.
+          SCREEN-INPUT = 0. " input 비활성화 = 0, 활성화 = 1
+          MODIFY SCREEN.    " Screen 갱신
+      ENDCASE.
+    ENDLOOP.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_CONTROL_0200 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_CONTROL_0200 OUTPUT.
+  IF GO_CONT3 IS INITIAL AND GO_CONT4 IS INITIAL.   " 이미 컨테이너 생성되어있는지 확인
+    PERFORM INIT_DATA_0200.           " Default 값 세팅
+    PERFORM CREATE_OBJECT_0200.  " Screen 200의 ALV 2개 틀 생성
+    PERFORM SET_LAYOUT_0200.          " Screen 100과 동일한 Layout 반영
+    PERFORM SET_SORTING_0200.
+    PERFORM SET_HANDLER_0200.
+    PERFORM SET_CATALOG_0200.
+    PERFORM SET_EXCLUDE_TOOLBAR_0200.
+    PERFORM CALL_DISPLAY_0200.
+
+  ELSE.
+    CALL METHOD GO_GRID3-&gt;REFRESH_TABLE_DISPLAY( ).
+    CALL METHOD GO_GRID4-&gt;REFRESH_TABLE_DISPLAY( ).
+
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0210 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0210 OUTPUT.
+  SET PF-STATUS 'STATUS_0210'.
+  SET TITLEBAR 'TITLE_0210'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0220 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0220 OUTPUT.
+ SET PF-STATUS 'STATUS_0220'.
+ SET TITLEBAR 'TITLE_0220'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0230 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE STATUS_0230 OUTPUT.
+ SET PF-STATUS 'STATUS_0230'.
+ SET TITLEBAR 'TITLE_0230'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_CONTROL_0230 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE INIT_CONTROL_0230 OUTPUT.
+  PERFORM INIT_DATA_0230.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

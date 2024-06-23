@@ -1,0 +1,672 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD030_F01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD030_F01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_SD030_F01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_SD030_F01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form VIEW_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM VIEW_ANSWER .
+  DATA: LV_ANSWER.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '화면 이동 확인'
+      TEXT_QUESTION         = '판매계획 조회 화면으로 이동하시겠습니까?'
+      TEXT_BUTTON_1         = '네'
+      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'
+      TEXT_BUTTON_2         = '아니오'
+      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'
+      DEFAULT_BUTTON        = '1'
+      DISPLAY_CANCEL_BUTTON = ''
+    IMPORTING
+      ANSWER                = LV_ANSWER
+    EXCEPTIONS
+      OTHERS                = 1.
+  IF LV_ANSWER = '1'.
+    MESSAGE S013. " 이동이 완료되었습니다.
+    CALL TRANSACTION 'ZBBSD070'.  " 판매계획 생성
+  ELSE.
+    MESSAGE S010. " 취소되었습니다.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form init_data</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM INIT_DATA .
+  ZBBT_SD070-SPLANDATE = SY-DATUM.
+  ZBBT_SD070-SPLANY    = SY-DATUM(4).
+  ZBBT_SD070-EMPNO     = 'HR240505'.
+  ZBBT_SD080-UNIT      = 'EA'.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_OBJECT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_OBJECT .
+  " 1) custom control area 에 container 를 link
+  CREATE OBJECT GO_CONTAINER1
+    EXPORTING
+      CONTAINER_NAME = 'CONTROL1' "100번 스크린에 생성한 이름
+    EXCEPTIONS
+      OTHERS         = 1.
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'CREATE OBJECT GO_CONT1 실패' TYPE 'E'.
+  ENDIF.
+
+
+  " 2) SPLIT
+  CREATE OBJECT GO_SPLIT1
+    EXPORTING
+      PARENT  = GO_CONTAINER1
+      ROWS    = 2                 " 몇 개의 가로(행) 분할 할 것인지 "
+      COLUMNS = 1.                " 몇 개의 세로(열) 분할 할 것인지 "
+
+  CALL METHOD GO_SPLIT1-&gt;GET_CONTAINER
+    EXPORTING
+      ROW       = 1
+      COLUMN    = 1
+    RECEIVING
+      CONTAINER = GO_CONT1.
+
+
+  CALL METHOD GO_SPLIT1-&gt;GET_CONTAINER
+    EXPORTING
+      ROW       = 2
+      COLUMN    = 1
+    RECEIVING
+      CONTAINER = GO_CONT2.
+
+  " 3) container 에 grid 를 link.
+  CREATE OBJECT GO_GRID1
+    EXPORTING
+      I_PARENT = GO_CONT1
+    EXCEPTIONS
+      OTHERS   = 1.
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'CREATE OBJECT GO_GRID1 실패' TYPE 'E'.
+  ENDIF.
+
+  CREATE OBJECT GO_GRID2
+    EXPORTING
+      I_PARENT = GO_CONT2
+    EXCEPTIONS
+      OTHERS   = 1.
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'CREATE OBJECT GO_GRID2 실패' TYPE 'E'.
+  ENDIF.
+
+  CALL METHOD GO_SPLIT1-&gt;SET_ROW_HEIGHT
+    EXPORTING
+      ID     = 1
+      HEIGHT = 35.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_LAYOUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Screen 0100 ALV Layout</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_LAYOUT .
+<font color ="#0000FF">** 판매계획 Header</font>
+  GS_LAYOUT1-GRID_TITLE = '생성된 판매 계획'.
+  GS_LAYOUT1-SEL_MODE = 'A'.
+  GS_LAYOUT1-ZEBRA = 'X'.
+
+<font color ="#0000FF">** 판매계획 Item</font>
+  GS_LAYOUT2-GRID_TITLE = '생성된 판매 상세 계획'.
+  GS_LAYOUT2-SEL_MODE = 'A'.
+  GS_LAYOUT2-ZEBRA = 'X'.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form SET_CATALOG</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM SET_CATALOG .
+
+  GS_FCAT1-FIELDNAME = 'SPLANNO'.
+  GS_FCAT1-COLTEXT   = '판매계획번호'.
+  GS_FCAT1-OUTPUTLEN = '12'.
+  GS_FCAT1-KEY       = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'SPLANDATE'.
+  GS_FCAT1-COLTEXT   = '계획수립일자'.
+  GS_FCAT1-OUTPUTLEN = '8'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'SPLANY'.
+  GS_FCAT1-COLTEXT   = '계획년도'.
+  GS_FCAT1-OUTPUTLEN = '6'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'SPLANM'.
+  GS_FCAT1-COLTEXT   = '계획월'.
+  GS_FCAT1-OUTPUTLEN = '4'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'EMPNO'.
+  GS_FCAT1-COLTEXT   = '직원번호'.
+  GS_FCAT1-OUTPUTLEN = '8'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'SPLANTXT'.
+  GS_FCAT1-COLTEXT   = '판매계획설명'.
+  GS_FCAT1-OUTPUTLEN = '30'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  " *--------------------------------------------------------------------*
+  " * Include 제거
+  " * CREATE_DT, CREATE_TM, CUSER, UPDATE_DT, UPDATE_TM, UUSER
+  " *--------------------------------------------------------------------*
+
+  GS_FCAT1-FIELDNAME = 'CREATE_DT'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'CREATE_TM'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'CUSER'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'UPDATE_DT'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'UPDATE_TM'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+  GS_FCAT1-FIELDNAME = 'UUSER'.
+  GS_FCAT1-NO_OUT = 'X'.
+  APPEND GS_FCAT1 TO GT_FCAT1.
+  CLEAR GS_FCAT1.
+
+<font color ="#0000FF">**********************************************************************</font>
+  " 4. 생성된 판매 상세 계획 (우측 ALV인 아이템)
+
+  GS_FCAT2-FIELDNAME = 'SPLANNO'.
+  GS_FCAT2-COLTEXT   = '판매계획번호'.
+  GS_FCAT2-OUTPUTLEN = '12'.
+  GS_FCAT2-KEY       = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'ITEMNO'.
+  GS_FCAT2-COLTEXT   = '아이템번호'.
+  GS_FCAT2-OUTPUTLEN = '8'.
+<font color ="#0000FF">*  GS_FCAT2-JUST      = 'L'.</font>
+  GS_FCAT2-KEY       = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'MATNO'.
+  GS_FCAT2-COLTEXT   = '자재코드'.
+  GS_FCAT2-OUTPUTLEN = '6'.
+  GS_FCAT2-JUST      = 'L'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'MATNM'.
+  GS_FCAT2-COLTEXT   = '자재명'.
+  GS_FCAT2-OUTPUTLEN = '20'.
+  GS_FCAT2-JUST      = 'L'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME  = 'QUANTITY'.
+  GS_FCAT2-COLTEXT    = '자재별판매수량'.
+  GS_FCAT2-OUTPUTLEN  = '10'.
+  GS_FCAT2-DECIMALS_O = '0'.      " 소수점 안 보이게
+<font color ="#0000FF">*  GS_FCAT2-EDIT       = 'X'.</font>
+<font color ="#0000FF">*  GS_FCAT2-REF_TABLE  = 'ZBBT_SD080'.</font>
+<font color ="#0000FF">*  GS_FCAT2-REF_FIELD  = 'QUANTITY'.</font>
+<font color ="#0000FF">*  GS_FCAT2-QFIELDNAME = 'UNIT'.</font>
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'UNIT'.
+  GS_FCAT2-COLTEXT   = '단위'.
+  GS_FCAT2-JUST      = 'L'.
+  GS_FCAT2-OUTPUTLEN = '3'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  " *--------------------------------------------------------------------*
+  " * Include 제거
+  " * CREATE_DT, CREATE_TM, CUSER, UPDATE_DT, UPDATE_TM, UUSER
+  " *--------------------------------------------------------------------*
+
+  GS_FCAT2-FIELDNAME = 'CREATE_DT'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'CREATE_TM'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'CUSER'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'UPDATE_DT'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'UPDATE_TM'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+  GS_FCAT2-FIELDNAME = 'UUSER'.
+  GS_FCAT2-NO_OUT = 'X'.
+  APPEND GS_FCAT2 TO GT_FCAT2.
+  CLEAR GS_FCAT2.
+
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CALL_DISPLAY</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CALL_DISPLAY .
+  CALL METHOD GO_GRID1-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'GS_SD070'
+
+      IS_LAYOUT        = GS_LAYOUT1           " Layout
+    CHANGING
+      IT_OUTTAB        = GT_SD070             " Output Table
+      IT_FIELDCATALOG  = GT_FCAT1             " Field Catalog
+<font color ="#0000FF">*     IT_SORT          = GT_SORTING_CRITERIA0 " Sort Criteria</font>
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'FORM CALL_DISPLAY 오류 발생.' TYPE 'E'.
+  ENDIF.
+
+<font color ="#0000FF">**********************************************************************</font>
+  " 생성된 판매 상세 계획
+
+  CALL METHOD GO_GRID2-&gt;SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      I_STRUCTURE_NAME = 'GS_SD080'
+      IS_LAYOUT        = GS_LAYOUT2           " Layout
+    CHANGING
+      IT_OUTTAB        = GT_SD080             " Output Table
+      IT_FIELDCATALOG  = GT_FCAT2             " Field Catalog
+<font color ="#0000FF">*     IT_SORT          = GT_SORTING_CRITERIA0 " Sort Criteria</font>
+    EXCEPTIONS
+      OTHERS           = 1.
+
+  IF SY-SUBRC &lt;&gt; 0.
+    MESSAGE 'FORM CALL_DISPLAY 오류 발생.' TYPE 'E'.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form down_excel</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 양식 다운로드</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*FORM DOWN_EXCEL .</font>
+<font color ="#0000FF">*  DATA: LT_TAB TYPE TABLE OF DFIES,</font>
+<font color ="#0000FF">*        LS_TAB LIKE LINE OF LT_TAB.</font>
+<font color ="#0000FF">*  DATA: LT_TAB1 TYPE TABLE OF DFIES,</font>
+<font color ="#0000FF">*        LS_TAB1 LIKE LINE OF LT_TAB.</font>
+<font color ="#0000FF">*  DATA: LT_TAB2 TYPE TABLE OF DFIES,</font>
+<font color ="#0000FF">*        LS_TAB2 LIKE LINE OF LT_TAB.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  DATA: LV_VISIBLE TYPE I,</font>
+<font color ="#0000FF">*        LV_INDEX   TYPE SY-TABIX.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  DATA : LS_KEY TYPE STRING VALUE '다운로드'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 테이블 포맷으로 엑셀 포맷 만들기 : Interface for Reading Text on Tables or Types</font>
+<font color ="#0000FF">*  CALL FUNCTION 'DDIF_FIELDINFO_GET'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      TABNAME        = 'ZBBT_SD070'</font>
+<font color ="#0000FF">*    TABLES</font>
+<font color ="#0000FF">*      DFIES_TAB      = LT_TAB1</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      NOT_FOUND      = 1</font>
+<font color ="#0000FF">*      INTERNAL_ERROR = 2</font>
+<font color ="#0000FF">*      OTHERS         = 3.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CALL FUNCTION 'DDIF_FIELDINFO_GET'</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      TABNAME        = 'ZBBT_SD080'</font>
+<font color ="#0000FF">*    TABLES</font>
+<font color ="#0000FF">*      DFIES_TAB      = LT_TAB2</font>
+<font color ="#0000FF">*    EXCEPTIONS</font>
+<font color ="#0000FF">*      NOT_FOUND      = 1</font>
+<font color ="#0000FF">*      INTERNAL_ERROR = 2</font>
+<font color ="#0000FF">*      OTHERS         = 3.</font>
+<font color ="#0000FF">*  IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">** Implement suitable error handling here</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  IF SY-SUBRC = 0.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    " 다운로드시 엑셀에 띄우지 않을 친구(필드)들</font>
+<font color ="#0000FF">**    APPEND LT_TAB TO</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'MANDT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'SPLANYN'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'CREATE_DT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'CREATE_TM'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'CUSER'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'UPDATE_DT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'UPDATE_TM'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB1 WHERE FIELDNAME = 'UUSER'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'MANDT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'CREATE_DT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'CREATE_TM'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'CUSER'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'UPDATE_DT'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'UPDATE_TM'.</font>
+<font color ="#0000FF">*    DELETE LT_TAB2 WHERE FIELDNAME = 'UUSER'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    APPEND LINES OF LT_TAB2 TO LT_TAB1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** OLE OBJECT 객체 생성</font>
+<font color ="#0000FF">*    CREATE OBJECT GO_APPLICATION 'Excel.Application'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** WORKBOOK 객체 생성</font>
+<font color ="#0000FF">*    CALL METHOD OF GO_APPLICATION 'Workbooks' = GO_WBOOK.</font>
+<font color ="#0000FF">*    CALL METHOD OF GO_WBOOK 'Add'.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 엑셀 화면을 띄울것인지 안 띄울 것인지 결정 : 0 또는 1</font>
+<font color ="#0000FF">*    SET PROPERTY OF GO_APPLICATION 'Visible' = 1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 워크시트 생성</font>
+<font color ="#0000FF">*    CALL METHOD OF GO_APPLICATION 'Worksheets' = GO_SHEET</font>
+<font color ="#0000FF">*      EXPORTING #1 = 1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** 워크시트 활성화</font>
+<font color ="#0000FF">*    CALL METHOD OF GO_SHEET 'Activate'.</font>
+<font color ="#0000FF">*    SET PROPERTY OF GO_SHEET 'Name' = '판매계획데이터'.  "시트명</font>
+<font color ="#0000FF">*    GET PROPERTY OF GO_APPLICATION 'ActiveWorkbook' = GO_WBOOK.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    LOOP AT LT_TAB1 INTO LS_TAB.</font>
+<font color ="#0000FF">*      LV_INDEX = SY-TABIX.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      PERFORM FILL_CELL USING GO_APPLICATION 1 LV_INDEX LS_TAB-FIELDTEXT. "fieldname.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    ENDLOOP.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CONCATENATE GV_DIRECTORY '\' LS_KEY '.xlsx' INTO GV_PATH.</font>
+<font color ="#0000FF">*  CALL METHOD OF GO_WBOOK 'SaveAs' EXPORTING #1 = GV_PATH.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">** EXCEL # ### Object# Release</font>
+<font color ="#0000FF">*  FREE: GO_APPLICATION, GO_WBOOK, GO_SHEET.</font>
+<font color ="#0000FF">*ENDFORM.</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form FILL_CELL</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      --&gt; GO_APPLICATION</font>
+<font color ="#0000FF">*&      --&gt; P_1</font>
+<font color ="#0000FF">*&      --&gt; LV_INDEX</font>
+<font color ="#0000FF">*&      --&gt; LS_TAB_FIELDTEXT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*FORM FILL_CELL  USING    PV_APPLICATION</font>
+<font color ="#0000FF">*                         PV_ROW</font>
+<font color ="#0000FF">*                         PV_COL</font>
+<font color ="#0000FF">*                         PV_VALUE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  DATA: LV_ECELL TYPE OLE2_OBJECT.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  CALL METHOD OF PV_APPLICATION 'Cells' = LV_ECELL</font>
+<font color ="#0000FF">*    EXPORTING</font>
+<font color ="#0000FF">*      #1 = PV_ROW</font>
+<font color ="#0000FF">*      #2 = PV_COL.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  SET PROPERTY OF LV_ECELL 'Value' = PV_VALUE.</font>
+<font color ="#0000FF">*ENDFORM.</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_ANSWER</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_ANSWER .
+  DATA: LV_ANSWER.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '데이터 생성 확인'
+      TEXT_QUESTION         = '판매계획을 생성하시겠습니까?'
+      TEXT_BUTTON_1         = '네'
+      ICON_BUTTON_1         = 'ICON_SYSTEM_OKAY'
+      TEXT_BUTTON_2         = '아니오'
+      ICON_BUTTON_2         = 'ICON_SYSTEM_CANCEL'
+      DEFAULT_BUTTON        = '1'
+      DISPLAY_CANCEL_BUTTON = ' '
+    IMPORTING
+      ANSWER                = LV_ANSWER
+    EXCEPTIONS
+      OTHERS                = 1.
+  IF LV_ANSWER = '1'.
+    MESSAGE S001.
+    PERFORM CREATE_DATA.
+  ELSE.
+    MESSAGE S010. " 취소되었습니다.
+  ENDIF.
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form CREATE_DATA</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM CREATE_DATA .
+  IF GV_R1 = 'X'.   " 헤더 생성 (판매계획)
+
+    IF ZBBT_SD070 IS NOT INITIAL.
+      CLEAR GS_LINE.
+
+      PERFORM GET_SPLANNO.
+
+      GS_LINE-SPLANNO   = ZBBT_SD070-SPLANNO.
+      GS_LINE-SPLANDATE = ZBBT_SD070-SPLANDATE.
+      GS_LINE-SPLANY = ZBBT_SD070-SPLANY.
+      GS_LINE-SPLANM = ZBBT_SD070-SPLANM.
+      GS_LINE-SPLANTXT = ZBBT_SD070-SPLANTXT.
+      GS_LINE-SPLANYN = 0.
+      GS_LINE-SPLANSUB = 0.
+      GS_LINE-EMPNO = ZBBT_SD070-EMPNO.
+
+      MOVE-CORRESPONDING GS_LINE TO GS_SD070.
+
+      CLEAR GT_SD070.
+
+      APPEND GS_SD070 TO GT_SD070.
+
+      LOOP AT GT_SD070 INTO GS_SD070.
+        GS_SD070-CREATE_DT = SY-DATUM.
+        GS_SD070-CREATE_TM = SY-UZEIT.
+        GS_SD070-CUSER = SY-UNAME.
+        MODIFY GT_SD070 FROM GS_SD070.
+        INSERT INTO ZBBT_SD070 VALUES GS_SD070.
+      ENDLOOP.
+
+      IF SY-SUBRC &lt;&gt; 0.
+        MESSAGE E002.  " 데이터 생성에 실패하셨습니다.
+        EXIT.
+      ELSE.
+<font color ="#0000FF">**** ALV 보여주게 할 곳 ****</font>
+        PERFORM CALL_DISPLAY.
+        IF SY-SUBRC = 0.
+          MESSAGE S075 WITH ZBBT_SD070-SPLANNO.  "판매계획 &가 생성되었습니다.
+        ELSE.
+          MESSAGE S002 DISPLAY LIKE 'E'.
+        ENDIF.
+      ENDIF.
+
+    ELSE.
+      MESSAGE S068 DISPLAY LIKE 'E'.
+    ENDIF.
+
+  ELSEIF GV_R2 = 'X'.   " 아이템 생성 (판매 상세계획)
+    DATA : LV_ITEMNO  TYPE ZBBT_SD080-ITEMNO.
+
+    CLEAR: GS_LINE2, GS_SD080.
+    DESCRIBE TABLE GT_SD080.
+
+    LV_ITEMNO = SY-TFILL * 10 + 10.
+
+<font color ="#0000FF">*    CLEAR GT_SD080.</font>
+
+    GS_LINE2-SPLANNO  = ZBBT_SD070-SPLANNO.
+    GS_LINE2-ITEMNO   = LV_ITEMNO.
+    GS_LINE2-MATNO    = ZBBT_SD080-MATNO.
+    GS_LINE2-QUANTITY = ZBBT_SD080-QUANTITY.
+    GS_LINE2-UNIT     = 'EA'.
+    MOVE-CORRESPONDING GS_LINE2 TO GS_SD080.
+
+    APPEND GS_SD080 TO GT_SD080.
+
+    LOOP AT GT_SD080 INTO GS_SD080.
+      GS_SD080-CREATE_DT = SY-DATUM.
+      GS_SD080-CREATE_TM = SY-UZEIT.
+      GS_SD080-CUSER = SY-UNAME.
+
+      SELECT SINGLE * FROM ZBBT_MM020
+      INTO GS_MM020
+      WHERE MATNO = GS_SD080-MATNO.
+      GS_SD080-MATNM = GS_MM020-MATNM.
+
+      MODIFY GT_SD080 FROM GS_SD080.
+      INSERT INTO ZBBT_SD080 VALUES GS_SD080.
+    ENDLOOP.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE S002 DISPLAY LIKE 'E'.
+    ELSE.
+      PERFORM CALL_DISPLAY.
+      IF SY-SUBRC = 0.
+        MESSAGE S075 WITH GS_SD080-ITEMNO.  "아이템번호 &가 생성되었습니다.
+      ENDIF.
+      MESSAGE S001.
+    ENDIF.
+
+
+  ENDIF.
+
+ENDFORM.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Form GET_NUMBRANGE</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& 판매계획번호 자동 채번</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& --&gt;  p1        text</font>
+<font color ="#0000FF">*& &lt;--  p2        text</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+FORM GET_SPLANNO .
+  DATA : LV_DATE  TYPE N LENGTH 6,
+         LV_YEAR  TYPE N LENGTH 2,
+         LV_MONTH TYPE N LENGTH 2,
+         LV_DAY   TYPE N LENGTH 2.
+
+  DATA : LV_WHERE TYPE C LENGTH 13,
+         LV_NUM   TYPE N LENGTH 3.
+
+  LV_YEAR = SY-DATUM+2(2).
+  LV_MONTH = SY-DATUM+4(2).
+  LV_DAY = SY-DATUM+6(2).
+
+  " 오늘 날짜를 구함 ex)240507
+  CONCATENATE LV_YEAR LV_MONTH LV_DAY INTO LV_DATE.
+
+  " 문자열 부분일치 검색 위해 (% 사용)
+  CONCATENATE '%' LV_DATE '%' INTO LV_WHERE.
+
+  " 오늘 날짜가 포함된 오더를 Select
+  " 판매계획번호를 내림차순하여 가장 상단의 건이 가장 마지막 생성건이게 됨.
+  SELECT SPLANNO
+    FROM ZBBT_SD070
+    WHERE SPLANNO LIKE @LV_WHERE
+    ORDER BY SPLANNO DESCENDING
+    INTO CORRESPONDING FIELDS OF TABLE @GT_SD070.
+
+  READ TABLE GT_SD070 INTO GS_SD070 INDEX 1.
+
+  IF SY-SUBRC &lt;&gt; 0.    " 오늘 날짜의 생산오더가 존재하지 않는 경우
+    CONCATENATE 'SDPL' SY-DATUM+2(6) '001' INTO ZBBT_SD070-SPLANNO.
+
+  ELSE.                " 오늘 날짜의 생산오더가 존재하는 경우
+    LV_NUM = GS_SD070-SPLANNO+10(3).
+    LV_NUM = LV_NUM + 1.
+    CONCATENATE 'SDPL' SY-DATUM+2(6) LV_NUM INTO ZBBT_SD070-SPLANNO.
+  ENDIF.
+ENDFORM.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

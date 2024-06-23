@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM090_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM090_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_MM090_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_MM090_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+MODULE CLEAR_OK_CODE OUTPUT.
+  CLEAR OK_CODE.
+ENDMODULE.
+
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS 'STATUS_0100'.
+  SET TITLEBAR 'TITLE_0100'.
+ENDMODULE.
+
+MODULE CREATE_AND_TRANSFER OUTPUT.
+
+  IF GO_CONT IS INITIAL.
+    PERFORM SET_CONTAINER.
+<font color ="#0000FF">*    PERFORM SET_CONTAINER2.</font>
+    PERFORM SET_GRID.
+<font color ="#0000FF">*    PERFORM SET_GRID2.</font>
+    PERFORM SET_LAYOUT.
+<font color ="#0000FF">*    PERFORM SET_LAYOUT2.</font>
+    PERFORM SET_SORTING.
+<font color ="#0000FF">*    PERFORM SET_SORTING2.</font>
+    PERFORM FIELD_CATALOG.
+<font color ="#0000FF">*    PERFORM FIELD_CATALOG2.</font>
+    PERFORM SET_HANDLER.
+    PERFORM DISPLAY_ALV_GRID.
+<font color ="#0000FF">*    PERFORM DISPLAY_ALV_GRID2.</font>
+  ENDIF.
+
+ENDMODULE.
+
+MODULE HOTSPOT OUTPUT.
+
+  IF GS_PURORD3 IS NOT INITIAL.
+    MOVE-CORRESPONDING GS_PURORD3 TO ZBBT_MM030. " 화면에 출력
+  ENDIF.
+
+  CLEAR GS_PURORD3.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

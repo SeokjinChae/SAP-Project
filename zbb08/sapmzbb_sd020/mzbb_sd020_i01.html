@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD020_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD020_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_SD020_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_SD020_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  PERFORM USER_COMMAND_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  PERFORM EXIT.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0110 INPUT.
+  CASE OK_CODE2.
+    WHEN 'FCODE1'. " 생성
+      PERFORM CREATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'. " 취소
+      MESSAGE S010. " 취소되었습니다.
+      CLEAR ZBBT_HR020.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0120 INPUT.
+  CASE OK_CODE3.
+    WHEN 'FCODE3'. " 업로드
+      PERFORM UPLOAD_EXCEL.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'. " 닫기
+      MESSAGE S010. " 취소되었습니다.
+      CLEAR ZBBT_HR020.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0130 INPUT.
+  CASE OK_CODE4.
+    WHEN 'FCODE5'. " 수정
+      PERFORM UPDATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'. " 취소
+      MESSAGE S010. " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_EMPNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_EMPNO_F4 INPUT.
+
+  DATA: LT_RETURN       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.
+
+  TYPES: BEGIN OF TY_EMPNO,
+           EMPNO   LIKE ZBBT_HR020-EMPNO,
+           EMPNM   LIKE ZBBT_HR020-EMPNM,
+           EMPRANK LIKE ZBBT_HR020-EMPRANK,
+           DEPTNO  LIKE ZBBT_HR020-DEPTNO,
+         END OF TY_EMPNO.
+  DATA : LT_EMPNO TYPE TABLE OF TY_EMPNO,
+         LS_EMPNO TYPE TY_EMPNO.
+
+  SELECT EMPNO, EMPNM, EMPRANK, DEPTNO
+   INTO TABLE @LT_EMPNO
+   FROM ZBBT_HR020
+  WHERE DELFLAG &lt;&gt; 'X'.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'EMPNO'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_EMPNO-EMPNO'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '직원'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = LT_EMPNO            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DEPTNO  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DEPTNO INPUT.
+
+  DATA : LV_DEPTNO TYPE ZBBT_HR020-DEPTNO.
+
+  IF ZBBT_HR020-DEPTNO IS NOT INITIAL.
+
+    SELECT SINGLE DEPTNO INTO LV_DEPTNO FROM ZBBT_HR030
+                       WHERE DEPTNO = ZBBT_HR020-DEPTNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE S133 DISPLAY LIKE 'E'. " 부서번호가 존재하지 않습니다.
+      CLEAR ZBBT_HR020-DEPTNO.
+      CLEAR GT_HR020.
+      LEAVE TO SCREEN 100.
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.
+MODULE CHECK_DEPTNO2 INPUT.
+
+  DATA : LV_DEPTNO2 TYPE ZBBT_HR020-DEPTNO.
+
+  IF ZBBT_HR020-DEPTNO IS NOT INITIAL.
+
+    SELECT SINGLE DEPTNO INTO LV_DEPTNO2 FROM ZBBT_HR030
+                       WHERE DEPTNO = ZBBT_HR020-DEPTNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE I133 DISPLAY LIKE 'E'. " 부서번호가 존재하지 않습니다.
+      CLEAR ZBBT_HR020-DEPTNO.
+      LEAVE TO SCREEN 110.
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.
+MODULE CHECK_DEPTNO3 INPUT.
+
+  DATA : LV_DEPTNO3 TYPE ZBBT_HR020-DEPTNO.
+
+  IF ZBBT_HR020-DEPTNO IS NOT INITIAL.
+
+    SELECT SINGLE DEPTNO INTO LV_DEPTNO3 FROM ZBBT_HR030
+                       WHERE DEPTNO = ZBBT_HR020-DEPTNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE I133 DISPLAY LIKE 'E'. " 부서번호가 존재하지 않습니다.
+      CLEAR ZBBT_HR020-DEPTNO.
+      LEAVE TO SCREEN 130.
+    ENDIF.
+
+  ENDIF.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

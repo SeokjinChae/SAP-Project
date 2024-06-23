@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI040_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_FI040_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_FI040_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_FI040_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+" ABAP
+
+CLASS : lcl_event_handler DEFINITION DEFERRED.
+
+DATA : go_handler TYPE REF TO lcl_event_handler.
+
+TABLES : zbbt_fi010, zbbt_fi020, zbbt_fi030.
+
+TYPES : BEGIN OF zty_acc.
+include structure <a href ="zbbt_fi020/dictionary-zbbt_fi020.html">zbbt_fi020</a>.
+TYPES :  tempo_txt TYPE c LENGTH 2,
+        END OF zty_acc.
+
+DATA : gs_acc TYPE zty_acc,
+       gt_acc TYPE TABLE OF zty_acc.
+
+DATA : BEGIN OF gs_acci.
+include structure <a href ="zbbt_fi030/dictionary-zbbt_fi030.html">zbbt_fi030</a>.
+DATA : acctnm TYPE zbbt_fi010-acctnm,
+      END OF gs_acci.
+
+DATA : gt_acci LIKE TABLE OF gs_acci.
+
+DATA:
+  go_dock_cont01 TYPE REF TO cl_gui_docking_container,
+  go_split       TYPE REF TO cl_gui_splitter_container.
+
+DATA:
+  go_cont01  TYPE REF TO cl_gui_container,
+  go_cont02 TYPE REF TO cl_gui_container.
+
+DATA:
+  go_grid01     TYPE REF TO cl_gui_alv_grid,
+  go_grid02     TYPE REF TO cl_gui_alv_grid.
+
+DATA : ok_code TYPE sy-ucomm.
+
+" layout을 위해 필요한 data
+DATA: gs_layout      TYPE lvc_s_layo,
+      gs_layout2     TYPE lvc_s_layo.
+
+" cell color
+DATA: gs_field_color TYPE lvc_s_scol.
+
+"Sort
+DATA : gs_sort  TYPE lvc_s_sort.
+
+" field catalog
+DATA : gs_fcat TYPE lvc_s_fcat,
+       gt_fcat TYPE lvc_t_fcat,
+       gt_fcat2 TYPE lvc_t_fcat.
+
+" SCREEN
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS : pa_com TYPE zbbt_fi020-compno MODIF ID com,
+               pa_fiy TYPE zbbt_fi020-fiyear.
+
+  SELECT-OPTIONS : so_acctp FOR zbbt_fi020-acctype,
+                   so_pst FOR zbbt_fi020-pstdate,
+                   so_acc FOR zbbt_fi020-accdcmuno.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+<font color ="#0000FF">*SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME.</font>
+<font color ="#0000FF">*  SELECT-OPTIONS : so_carr FOR gs_sflight-carrid,</font>
+<font color ="#0000FF">*                   so_conn FOR gs_sflight-connid.</font>
+<font color ="#0000FF">*SELECTION-SCREEN END OF BLOCK b2.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECTION-SCREEN SKIP 1.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_BAT010</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_BAT010</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [SAP ssarum-SD] 구독 주문 판매계획 반영 프로그램 (batch job)</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module Pool ZBB_BAT010</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& PROGRAM ID  : ZBB_BAT010</font>
+<font color ="#0000FF">*& DESCRIPTION : 구독 주문 중 (0) 판매계획 반영 대기 상태인 주문건들을 일 기준으로 판매 계획 헤더/아이템 테이블에 반영하는 프로그램</font>
+<font color ="#0000FF">*& MODULE      : SD</font>
+<font color ="#0000FF">*& DEVELOPER   : ACA2-09 (김현수)</font>
+<font color ="#0000FF">*& CREATED DATE: 2024.05.02</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& MODIFIED HISTORY :</font>
+<font color ="#0000FF">*& DEVELOPER       DATE             DESCRIPTION</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*  ACA2-09        2024.05.02         신규 개발</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+REPORT ZBB_BAT010.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* TOP</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+TABLES : ZBBT_SD040, ZBBT_SD060, ZBBT_MM090, ZBBT_SD070, ZBBT_SD080.
+
+DATA : GT_SD040 TYPE TABLE OF ZBBT_SD040,
+       GS_SD040 LIKE LINE OF GT_SD040.
+
+DATA : GT_SD040_TEMP LIKE GT_SD040.
+DATA : GS_SD040_TEMP LIKE GS_SD040.
+
+DATA : GT_SD060 TYPE TABLE OF ZBBT_SD060,
+       GS_SD060 LIKE LINE OF GT_SD060.
+
+DATA : GT_SD060_TEMP TYPE TABLE OF ZBBT_SD060,
+       GS_SD060_TEMP LIKE LINE OF GT_SD060.
+
+DATA : GT_MM090 TYPE TABLE OF ZBBT_MM090,
+       GS_MM090 LIKE LINE OF GT_MM090.
+
+DATA : GT_SD070 TYPE TABLE OF ZBBT_SD070,
+       GS_SD070 LIKE LINE OF GT_SD070.
+
+DATA : GT_SD080 TYPE TABLE OF ZBBT_SD080,
+       GS_SD080 LIKE LINE OF GT_SD080.
+
+<font color ="#0000FF">* SUBITEM : 구독주문 상세 각각의 자재구성요소</font>
+DATA : BEGIN OF GS_SUBITEM,
+         MATNO    LIKE ZBBT_SD030-MATNO,
+         QUANTITY LIKE ZBBT_SD030-QUANTITY,
+         UNIT     LIKE ZBBT_SD030-UNIT,
+       END OF GS_SUBITEM.
+DATA : GT_SUBITEM LIKE TABLE OF GS_SUBITEM.
+
+DATA : GT_SUBITEM_TEMP LIKE GT_SUBITEM.
+DATA : GS_SUBITEM_TEMP LIKE GS_SUBITEM.
+
+DATA : LV_YESTERDAY LIKE SY-DATUM.
+DATA : LV_SUBDAY LIKE SY-DATUM.
+DATA : LV_NR TYPE C LENGTH 13. "  넘버레인지 받을 변수
+DATA : LV_NR_TEMP TYPE C LENGTH 3.
+DATA : LV_DESCRIPTION TYPE C LENGTH 255.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* SELECT</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">* GT_SD040에, 어제자 구독주문 요청이 들어온 주문건들을 가져오기</font>
+
+LV_YESTERDAY = SY-DATUM.
+
+CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+  EXPORTING
+    DATE      = LV_YESTERDAY
+    DAYS      = '01'
+    MONTHS    = '00'
+    SIGNUM    = '-'
+    YEARS     = '00'
+  IMPORTING
+    CALC_DATE = LV_YESTERDAY.
+
+CLEAR GT_SD040.
+SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_SD040
+  FROM ZBBT_SD040
+ WHERE ORDERDATE EQ LV_YESTERDAY
+   AND ORDERTY EQ '1'
+   AND SUBORDSTAT EQ '0'
+  ORDER BY ORDERNO.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 판매계획 헤더에 데이터 넣어주기</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">* 어제자 주문요청 들어온 구독주문건들을 판매계획 헤더에 달별로 12개 넣어주기</font>
+
+IF GT_SD040 IS NOT INITIAL.
+
+  LV_SUBDAY = SY-DATUM.
+
+  DO 12 TIMES.
+    DATA : LV_TEMP TYPE I VALUE 0.
+    CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+      EXPORTING
+        DATE      = LV_SUBDAY
+        DAYS      = '00'
+        MONTHS    = '01'
+        SIGNUM    = '+'
+        YEARS     = '00'
+      IMPORTING
+        CALC_DATE = LV_SUBDAY.
+
+    CLEAR GS_SD070.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">*    CALL FUNCTION 'NUMBER_GET_NEXT' " LV_NR에 넘버레인지 받아 오기</font>
+<font color ="#0000FF">*      EXPORTING</font>
+<font color ="#0000FF">*        NR_RANGE_NR = '01'</font>
+<font color ="#0000FF">*        OBJECT      = 'ZBB_SPLANN'</font>
+<font color ="#0000FF">**       QUANTITY    = '1'</font>
+<font color ="#0000FF">**       SUBOBJECT   = ' '</font>
+<font color ="#0000FF">**       TOYEAR      = '0000'</font>
+<font color ="#0000FF">**       IGNORE_BUFFER           = ' '</font>
+<font color ="#0000FF">*      IMPORTING</font>
+<font color ="#0000FF">*        NUMBER      = LV_NR_TEMP</font>
+<font color ="#0000FF">**       QUANTITY    =</font>
+<font color ="#0000FF">**       RETURNCODE  =</font>
+<font color ="#0000FF">*      EXCEPTIONS</font>
+<font color ="#0000FF">*        OTHERS      = 1.</font>
+<font color ="#0000FF">*    IF SY-SUBRC &lt;&gt; 0.</font>
+<font color ="#0000FF">*    ENDIF.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    CONCATENATE 'SDPL' SY-DATUM+2(6) LV_NR_TEMP INTO LV_NR. " 넘버레인지에 PREFIX 붙여 주기</font>
+    IF SY-BATCH EQ 'X'.
+      CONCATENATE '[구독 - 배치잡] ' LV_SUBDAY '까지 보내야 하는 ' LV_YESTERDAY '일자 구독주문건에 대한 판매계획' INTO LV_DESCRIPTION.
+    ELSE.
+      CONCATENATE '[구독] ' LV_SUBDAY '까지 보내야 하는 ' LV_YESTERDAY '일자 구독주문건에 대한 판매계획' INTO LV_DESCRIPTION.
+    ENDIF.
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+    DATA : LV_DATE  TYPE N LENGTH 6,
+           LV_YEAR  TYPE N LENGTH 2,
+           LV_MONTH TYPE N LENGTH 2,
+           LV_DAY   TYPE N LENGTH 2.
+
+    DATA : LV_WHERE TYPE C LENGTH 13,
+           LV_NUM   TYPE N LENGTH 3.
+
+    LV_YEAR = SY-DATUM+2(2).
+    LV_MONTH = SY-DATUM+4(2).
+    LV_DAY = SY-DATUM+6(2).
+
+    " 오늘 날짜를 구함 ex)240507
+    CONCATENATE LV_YEAR LV_MONTH LV_DAY INTO LV_DATE.
+
+    " 문자열 부분일치 검색 위해 (% 사용)
+    CONCATENATE '%' LV_DATE '%' INTO LV_WHERE.
+
+    " 오늘 날짜가 포함된 오더를 Select
+    " 생산오더번호를 내림차순하여 가장 상단의 건이 가장 마지막 생성건이게 됨.
+    SELECT SPLANNO
+      FROM ZBBT_SD070
+      WHERE SPLANNO LIKE @LV_WHERE
+      ORDER BY SPLANNO DESCENDING
+      INTO CORRESPONDING FIELDS OF TABLE @GT_SD070.
+
+    READ TABLE GT_SD070 INTO GS_SD070 INDEX 1.
+
+    IF SY-SUBRC &lt;&gt; 0.    "오늘 날짜의 판매계획이 존재하지 않는 경우
+      CONCATENATE 'SDPL' SY-DATUM+2(6) '001' INTO LV_NR.
+
+    ELSE.   "오늘 날짜의 판매계획이 존재하는 경우
+      LV_NUM = GS_SD070-SPLANNO+10(3).
+      LV_NUM = LV_NUM + 1.
+      CONCATENATE 'SDPL' SY-DATUM+2(6) LV_NUM INTO LV_NR.
+    ENDIF.
+
+
+
+    " 판매계획 헤더 테이블 WA에 값 넣어주기.
+    GS_SD070-SPLANNO =  LV_NR.
+    GS_SD070-SPLANDATE = SY-DATUM(8).
+    GS_SD070-SPLANY = LV_SUBDAY+0(4).
+    GS_SD070-SPLANM = LV_SUBDAY+4(2).
+    GS_SD070-SPLANTXT = LV_DESCRIPTION.
+    GS_SD070-SPLANYN = '0'.
+    GS_SD070-SPLANSUB = '1'.
+    GS_SD070-EMPNO = 'HR240505'.
+    GS_SD070-CREATE_DT = SY-DATUM.
+    GS_SD070-CREATE_TM = SY-UZEIT.
+    GS_SD070-CUSER = SY-UNAME.
+
+
+    INSERT ZBBT_SD070 FROM GS_SD070.
+
+
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">* 판매계획 아이템에 데이터 넣어주기 (판매계획번호, 자재코드, 수량, 단위)</font>
+<font color ="#0000FF">* 하루에 들어온 구독주문건들에 대한 구독상품들에 대한 자재코드들을 자재/수량 형식으로 중복없이 넣기</font>
+    CLEAR GT_SD060.
+    CLEAR GT_SD060_TEMP.
+    LOOP AT GT_SD040 INTO GS_SD040. " SD060에, 어제자 주문 들어온 모든 구독주문의 상세 (구독상품 기준) 넣기
+
+      SELECT * INTO CORRESPONDING FIELDS OF TABLE GT_SD060_TEMP
+        FROM ZBBT_SD060
+       WHERE ORDERNO EQ GS_SD040-ORDERNO.
+
+      APPEND LINES OF GT_SD060_TEMP TO GT_SD060.
+
+    ENDLOOP.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+    LOOP AT GT_SD040 INTO GS_SD040. " ZBBT_SD040의 주문상태 1로 바꿔주기
+
+      GS_SD040-SUBORDSTAT = '1'.
+
+      MODIFY ZBBT_SD040 FROM GS_SD040.
+
+    ENDLOOP.
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+
+    CLEAR GT_SUBITEM. " GT_SUBITEM을, SUBNO별로 따로 하지 말고 하루치 구독주문의 모든 구독상품의 구성요소를 때려박아주기
+
+    LOOP AT GT_SD060 INTO GS_SD060.
+
+      CLEAR GT_SUBITEM_TEMP.
+
+      SELECT MATNO QUANTITY INTO CORRESPONDING FIELDS OF TABLE GT_SUBITEM_TEMP
+        FROM ZBBT_SD030
+        WHERE SUBNO = GS_SD060-SUBNO.
+
+<font color ="#0000FF">* 이 시점에서는 한 주문건 헤더의 아이템 중에서도, 한 구독상품에 대한 자재와, 구매수량이 아닌 그 구독상품에 해당 자재가 몇개 포함되는지가 GT_SUBITEM_TEMP에 쌓임.</font>
+
+      LOOP AT GT_SUBITEM_TEMP INTO GS_SUBITEM_TEMP.
+        GS_SUBITEM_TEMP-QUANTITY = GS_SUBITEM_TEMP-QUANTITY * GS_SD060-SUBQUANTITY.
+        MODIFY GT_SUBITEM_TEMP FROM GS_SUBITEM_TEMP.
+      ENDLOOP.
+
+      APPEND LINES OF GT_SUBITEM_TEMP TO GT_SUBITEM.
+
+    ENDLOOP. " 루프 끝나면, SD060(구독주문상세) 에 있는 모든 어제자 구독주문건에 필요한 자재들과 그 자재들이 포함된 구독상품에 얼마나 필요한지 쌓임. 중복 개많음. 구독제품수량은 반영이 안된듯?
+
+<font color ="#0000FF">*     GT_SUBITEM에 쌓인, 판매계획 헤더 한 건에 대한 아이템에 들어가야 할 제품들을 중복없이 만들기</font>
+    FIELD-SYMBOLS: &lt;FS_SUBITEM&gt; LIKE GS_SUBITEM.
+    SORT GT_SUBITEM BY MATNO.
+    CLEAR GT_SUBITEM_TEMP. " 여기에, 위에서 돌렸던 애들중 마지막애들이 남아있어서 그렇게 되었던것이다!! CLEAR!!!
+
+    LOOP AT GT_SUBITEM INTO GS_SUBITEM.
+      READ TABLE GT_SUBITEM_TEMP WITH KEY MATNO = GS_SUBITEM-MATNO TRANSPORTING NO FIELDS.
+      IF SY-SUBRC = 0.
+        READ TABLE GT_SUBITEM_TEMP WITH KEY MATNO = GS_SUBITEM-MATNO ASSIGNING &lt;FS_SUBITEM&gt;.
+        &lt;FS_SUBITEM&gt;-QUANTITY = &lt;FS_SUBITEM&gt;-QUANTITY + GS_SUBITEM-QUANTITY.
+      ELSE.
+        APPEND VALUE #( MATNO = GS_SUBITEM-MATNO QUANTITY = GS_SUBITEM-QUANTITY ) TO GT_SUBITEM_TEMP.
+      ENDIF.
+    ENDLOOP. " 루프가 끝나면 어제자 들어온 모든 구독주문의 MATNO / QUANTITY 로 예쁘게 만들어짐. 근데 개킹받게 1씩 틀리는 애들이 간혹 있음 ;; ㅅㅂ 정수로 바꾸면 해결될수도잇음
+
+
+<font color ="#0000FF">* 이 루프가 지금 달별로 12번 채번하면서 돌고 있는 애니까, 한 턴에 해당하는 판매계획번호에 해당하는 자재코드와 수량을 넣어주면 됨.</font>
+    CLEAR GT_SD080.
+    LV_TEMP = 0.
+    LOOP AT GT_SUBITEM_TEMP INTO GS_SUBITEM_TEMP.
+      LV_TEMP = LV_TEMP + 1.
+      GS_SD080-ITEMNO = LV_TEMP.
+      GS_SD080-SPLANNO = LV_NR.
+      GS_SD080-MATNO = GS_SUBITEM_TEMP-MATNO.
+      GS_SD080-QUANTITY = GS_SUBITEM_TEMP-QUANTITY.
+      GS_SD080-UNIT = 'EA'.
+      GS_SD080-CREATE_DT = SY-DATUM.
+      GS_SD080-CREATE_TM = SY-UZEIT.
+      GS_SD080-CUSER = SY-UNAME.
+
+      APPEND GS_SD080 TO GT_SD080.
+    ENDLOOP.
+
+    SORT GT_SUBITEM_TEMP BY MATNO.
+
+    INSERT ZBBT_SD080 FROM TABLE GT_SD080.
+
+
+  ENDDO.
+
+ENDIF.
+
+<font color ="#0000FF">*BREAK-POINT.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

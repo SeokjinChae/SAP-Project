@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD095_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD095_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD090_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'MOVE'.
+      LEAVE TO TRANSACTION 'ZBBSD120'.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'..
+      LEAVE TO SCREEN 100.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0101  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0101 INPUT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+<font color ="#0000FF">*      MESSAGE I010. " 취소되었습니다.</font>
+      LEAVE TO SCREEN 0.
+    WHEN 'CONFIRM'.
+      " 주문상태를 1로 바꿔주기
+      LOOP AT GT_SD040 INTO GS_SD040.
+        GS_SD040-SUBORDSTAT = '1'. " 구매 헤더 테이블의 '주문상태' 필드를 (1) '주문요청승인 후 출고승인대기' 상태로
+        MODIFY GT_SD040 FROM GS_SD040.
+      ENDLOOP.
+      MODIFY ZBBT_SD040 FROM TABLE GT_SD040. " 바꿔주기
+      CLEAR GT_SD040.
+
+<font color ="#0000FF">* GT_MM100 돌면서, 마이너스인 애가 하나라도 존재하면 그냥 생산계획 헤더 한 건 넣기</font>
+      LOOP AT GT_MM100 INTO GS_MM100.
+        IF GS_MM100-QUANTITY_LACK &lt; 0.
+          PERFORM INSERT_PPLAN_HEADER.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+
+<font color ="#0000FF">* GT_MM100 돌면서, 마이너스인 애들을 생산계획 아이템에 넣기.</font>
+      PERFORM INSERT_PPLAN_ITEM.
+
+<font color ="#0000FF">* 최종적으로 ZBBT에 반영</font>
+      LOOP AT GT_MM100 INTO GS_MM100.
+        MODIFY ZBBT_MM100 FROM GS_MM100.
+      ENDLOOP.
+      IF SY-SUBRC EQ 0.
+        MESSAGE I036.
+        " 하단 그리드 REFRESH 하여 변경된 상태 반영
+        CLEAR GT_DISPLAY1.
+        GO_GRID1-&gt;REFRESH_TABLE_DISPLAY( ).
+        CLEAR GT_INDEX. " 다시 새로고침 눌렀을 때 하단에 인덱스 밀린 엉뚱한 애 안 나오게 아예 선택행 테이블 지우기
+
+        " 상단 그리드 REFRESH 하여 변경된 상태 반영
+        PERFORM GET_DATA0.
+        PERFORM MAKE_DATA0.
+        GO_GRID0-&gt;REFRESH_TABLE_DISPLAY( ).
+
+
+      ELSE.
+        MESSAGE E037. " 출고 승인 처리에 실패했습니다.
+      ENDIF.
+
+      LEAVE TO SCREEN 0.
+
+  ENDCASE.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM100_E01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM100_E01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_MM100_E01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_MM100_E01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& INITIALIZATION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+INITIALIZATION.
+
+  SO_SNO-SIGN = 'I'.
+  SO_SNO-OPTION = 'BT'.
+  SO_SNO-LOW = 'BYW001'.
+  SO_SNO-HIGH = 'BYW003'.
+
+  APPEND SO_SNO.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN ON</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR SO_SNO-LOW.
+  PERFORM F4_STORNO.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR SO_SNO-HIGH.
+  PERFORM F4_STORNO.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR SO_MNO-LOW.
+  PERFORM F4_MATNO.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR SO_MNO-HIGH.
+  PERFORM F4_MATNO.
+
+AT SELECTION-SCREEN ON SO_SNO.
+  PERFORM CHECK_SNO.
+
+AT SELECTION-SCREEN ON SO_MNO.
+  PERFORM CHECK_MNO.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& START-OF-SELECTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+START-OF-SELECTION.
+
+  PERFORM FILL_TREE_INFO.
+  PERFORM FILL_ALV_INFO.
+
+  IF LINES( GT_MM090 ) GT 0.
+    CALL SCREEN 100.
+  ELSE.
+    MESSAGE S029 DISPLAY LIKE 'E'.  " 데이터가 존재하지 않습니다.
+  ENDIF.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_SD070_E01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_SD070_E01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SD080_E01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SD080_E01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& INITIALIZATION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+INITIALIZATION.
+
+  PERFORM INIT_DATA.
+
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& AT SELECTION-SCREEN OUTPUT.</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+AT SELECTION-SCREEN OUTPUT.
+<font color ="#0000FF">*  WRITE ICON_YELLOW_LIGHT AS ICON TO ICON1.</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& AT SELECTION-SCREEN</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+AT SELECTION-SCREEN. " 유효성 검사
+
+  " 계획월 통제
+  IF SO_SPM IS NOT INITIAL.
+    IF SO_SPM-LOW &lt; 1 OR SO_SPM-LOW &gt; 12 OR
+      ( SO_SPM-HIGH IS NOT INITIAL AND ( SO_SPM-HIGH &lt; 1 OR SO_SPM-HIGH &gt; 12 ) ).
+      MESSAGE S032 DISPLAY LIKE 'E'.
+    ENDIF.
+  ENDIF.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">* AT SELECTION-SCREEN ON</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+AT SELECTION-SCREEN ON SO_SPL.
+  PERFORM CHECK_SPL.
+
+AT SELECTION-SCREEN ON PA_EMPNO.
+  PERFORM CHECK_EMPNO.
+
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& START-OF-SELECTION</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+START-OF-SELECTION.
+
+<font color ="#0000FF">* 조회조건 입력 후 ENTER 치면 상단 그리드에 판매계획 헤더 정보 출력되도록.</font>
+  PERFORM GET_DATA0.
+  PERFORM MAKE_DATA0.
+  IF LINES( GT_DISPLAY0 ) GT 0.
+    CALL SCREEN 100.
+    PERFORM DISPLAY_DATA0.
+  ELSE.
+    MESSAGE S029 DISPLAY LIKE 'E'.  " 데이터가 존재하지 않습니다.
+  ENDIF.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

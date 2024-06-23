@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_FI020_O01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_FI020_O01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SKELETON_O01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_FI020_O01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0100 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0100 OUTPUT.
+ SET PF-STATUS 'STATUS_100'.
+ SET TITLEBAR 'TITLE_100'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CLEAR_OK_CODE OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE clear_ok_code OUTPUT.
+  CLEAR ok_code.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module CREATE_AND_TRANSFER OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE create_and_transfer OUTPUT.
+
+  IF go_container IS INITIAL. "이미 컨테이너 생성되어있는지 확인
+
+    PERFORM init_data. "Default값 세팅
+
+    "컨테이너 생성
+    PERFORM create_container.
+    PERFORM set_layout. "layout 설정
+    PERFORM set_excl_tb. " Toolbar 제외
+    PERFORM set_fcat. "field catalog 설정
+<font color ="#0000FF">*    PERFORM set_sorting. "sort</font>
+    PERFORM display_grid.
+
+  ELSE.
+<font color ="#0000FF">*    CALL METHOD go_alv_grid-&gt;refresh_table_display( ).</font>
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module AMOUNT_INFO OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE amount_confirm OUTPUT.
+
+  PERFORM amount_confirm.
+
+  IF debit_total EQ credit_total.
+<font color ="#0000FF">*    CONCATENATE icon_led_green '차변과 대변이 일치합니다' INTO icon.</font>
+    differ_dc = debit_total - credit_total. " 차이 금액 계산
+  ELSE.
+<font color ="#0000FF">*    CONCATENATE icon_led_red '차변과 대변이 일치하지 않습니다.' INTO icon.</font>
+
+    differ_dc = debit_total - credit_total. " 차이 금액 계산
+
+  ENDIF.
+
+
+  MODIFY SCREEN.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module REFRESH OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE refresh OUTPUT.
+  CASE sy-ucomm.
+    WHEN 'REFRESH'.
+      PERFORM refresh.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MODIFY_SCREEN OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE modify_screen OUTPUT.
+  PERFORM modify_screen.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0110 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0110 OUTPUT.
+ SET PF-STATUS 'STATUS_0110'.
+ SET TITLEBAR 'TITLE_0110'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_CONTROL OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE init_control OUTPUT.
+
+IF go_container2 IS INITIAL. "이미 컨테이너 생성되어있는지 확인
+
+<font color ="#0000FF">*    PERFORM init_data2. "Default값 세팅</font>
+
+    "컨테이너 생성
+    PERFORM create_container2.
+    PERFORM set_handler. "event handler
+    PERFORM set_layout2. "layout 설정
+    PERFORM set_fcat2. "field catalog 설정
+<font color ="#0000FF">*    PERFORM set_sorting. "sort</font>
+    PERFORM set_excl_tb.
+    PERFORM display_grid2.
+
+  ELSE.
+    CALL METHOD go_alv_grid2-&gt;refresh_table_display( ).
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module GET_DATA OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE get_data OUTPUT.
+PERFORM get_data.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MAKE_DATA OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE make_data OUTPUT.
+  PERFORM make_data.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module STATUS_0120 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE status_0120 OUTPUT.
+ SET PF-STATUS 'STATUS_0120'.
+ SET TITLEBAR 'TITLE_0120'.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module GET_DATA2 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE get_data2 OUTPUT.
+  PERFORM get_data2.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MAKE_DATA2 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE make_data2 OUTPUT.
+  PERFORM make_data2.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module INIT_CONTROL2 OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE init_control2 OUTPUT.
+IF go_container3 IS INITIAL. "이미 컨테이너 생성되어있는지 확인
+
+<font color ="#0000FF">*    PERFORM init_data2. "Default값 세팅</font>
+
+    "컨테이너 생성
+    PERFORM create_container3.
+    PERFORM set_handler2. "event handler
+    PERFORM set_layout3. "layout 설정
+    PERFORM set_fcat3. "field catalog 설정
+<font color ="#0000FF">*    PERFORM set_sorting. "sort</font>
+    PERFORM set_excl_tb.
+    PERFORM display_grid3.
+
+  ELSE.
+    CALL METHOD go_alv_grid3-&gt;refresh_table_display( ).
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Module MODIFY_SCREEN_H OUTPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+MODULE modify_screen_h OUTPUT.
+ PERFORM modify_screen_h.
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

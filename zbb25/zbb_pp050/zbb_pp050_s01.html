@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_PP050_S01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_PP050_S01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_PP050_S01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_PP050_S01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*SELECTION-SCREEN BEGIN OF BLOCK B1 WITH FRAME TITLE TEXT-T01.</font>
+<font color ="#0000FF">*  SELECT-OPTIONS :</font>
+<font color ="#0000FF">*    SO_PNO FOR ZBBT_PP020-PPLANNO,</font>
+<font color ="#0000FF">*    SO_PSDT FOR ZBBT_PP020-PPSURIPDATE,</font>
+<font color ="#0000FF">*    SO_PDT FOR ZBBT_PP020-PPLANDATE,</font>
+<font color ="#0000FF">*    SO_ENO FOR ZBBT_PP020-EMPNO.</font>
+<font color ="#0000FF">*  SELECTION-SCREEN END OF BLOCK B1.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*  SELECTION-SCREEN BEGIN OF BLOCK B2 WITH FRAME TITLE TEXT-T02.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    SELECTION-SCREEN BEGIN OF LINE.</font>
+<font color ="#0000FF">*    PARAMETERS : PA_PLX RADIOBUTTON GROUP R1 USER-COMMAND UCOM1.</font>
+<font color ="#0000FF">*    SELECTION-SCREEN COMMENT (10) FOR FIELD PA_PLX.</font>
+<font color ="#0000FF">*    SELECTION-SCREEN END OF LINE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      SELECTION-SCREEN BEGIN OF LINE.</font>
+<font color ="#0000FF">*    PARAMETERS : PA_PLO RADIOBUTTON GROUP R1.</font>
+<font color ="#0000FF">*     SELECTION-SCREEN COMMENT (10) FOR FIELD PA_PLO.</font>
+<font color ="#0000FF">*    SELECTION-SCREEN END OF LINE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*SELECTION-SCREEN BEGIN OF LINE.</font>
+<font color ="#0000FF">*    PARAMETERS : PA_ALL RADIOBUTTON GROUP R1 DEFAULT 'X'.</font>
+<font color ="#0000FF">*    SELECTION-SCREEN COMMENT (10) FOR FIELD PA_ALL.</font>
+<font color ="#0000FF">*    SELECTION-SCREEN END OF LINE.</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*    SELECTION-SCREEN END OF BLOCK B2.</font>
+
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 아랫걸로 다시만드는중 !</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+SELECTION-SCREEN BEGIN OF BLOCK B3 WITH FRAME TITLE TEXT-T01.
+
+  PARAMETERS : pa_view TYPE c RADIOBUTTON GROUP r1 USER-COMMAND choose DEFAULT 'X',    "생산계획 조회
+                         pa_make TYPE c RADIOBUTTON GROUP r1.     "생산계획 생성
+
+SELECTION-SCREEN END OF BLOCK B3.
+
+SELECTION-SCREEN BEGIN OF BLOCK B4 WITH FRAME TITLE TEXT-T02.
+
+  SELECT-OPTIONS :
+    SO_PNO FOR ZBBT_PP020-PPLANNO MODIF ID VIE,          "생산계획번호
+    SO_PSDT FOR ZBBT_PP020-PPSURIPDATE MODIF ID VIE,   " 생산계획수립일자
+    SO_PDT FOR ZBBT_PP020-PPLANDATE MODIF ID VIE,        " 생산계획일
+    SO_ENO FOR ZBBT_PP020-EMPNO MODIF ID VIE.             " 직원번호
+
+<font color ="#0000FF">* 여기에 라디오버튼도 선택조건으로 추가</font>
+    SELECTION-SCREEN BEGIN OF LINE.
+    PARAMETERS : pa_plx RADIOBUTTON GROUP r2 MODIF ID VIE.
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_plx.
+
+    PARAMETERS : pa_plo RADIOBUTTON GROUP r2 MODIF ID VIE DEFAULT 'X'.
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_plo.
+
+    PARAMETERS : pa_all RADIOBUTTON GROUP r2 MODIF ID VIE.
+    SELECTION-SCREEN COMMENT (10) FOR FIELD pa_all.
+    SELECTION-SCREEN END OF LINE.
+<font color ="#0000FF">* 생산계획 조회</font>
+<font color ="#0000FF">*--------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 생산계획 생성 - 판매계획 기반</font>
+    SELECT-OPTIONS : so_sno FOR zbbt_sd070-splanno MODIF ID MAK NO-EXTENSION, "판매계획번호
+                                  so_sdt FOR zbbt_sd070-splandate MODIF ID MAK, "판매계획 수립일자
+                                  so_spy FOR zbbt_sd070-splany MODIF ID MAK, "판매계획연도
+                                  so_spm FOR zbbt_sd070-splanm MODIF ID MAK, "판매계획연도
+                                  so_seno FOR zbbt_sd070-empno MODIF ID MAK.
+
+SELECTION-SCREEN END OF BLOCK B4.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

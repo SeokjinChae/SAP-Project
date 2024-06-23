@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_SD010_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_SD010_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include SAPMZBB_MM060_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_SD010_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  PERFORM USER_COMMAND_0100.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  PERFORM EXIT.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0110 INPUT.
+  CASE OK_CODE2.
+    WHEN 'FCODE1'.
+      PERFORM CREATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      MESSAGE S010.    "취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0120 INPUT.
+  CASE OK_CODE3.
+    WHEN 'FCODE3'.
+      PERFORM UPLOAD_EXCEL.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE S010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0130 INPUT.
+  CASE OK_CODE4.
+    WHEN 'FCODE5'.
+      PERFORM UPDATE_DATA.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE6'.
+      MESSAGE S010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE CHECK_DATA INPUT.
+  DATA : LV_MATNO TYPE ZBBT_MM020-MATNO,
+         LV_VENNO TYPE ZBBT_MM020-VENNO.
+
+<font color ="#0000FF">* MATNO INPUT CHECK</font>
+  IF  ZBBT_MM020-MATNO IS NOT INITIAL .
+    SELECT SINGLE MATNO INTO LV_MATNO
+      FROM ZBBT_MM020
+      WHERE MATNO = ZBBT_MM020-MATNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E000 WITH '데이터베이스에 존재하지 않는 판매제품입니다.'.
+      CLEAR ZBBT_MM020-MATNO.
+    ENDIF.
+  ENDIF.
+
+<font color ="#0000FF">* VENNO INPUT CHECK</font>
+  IF  ZBBT_MM020-VENNO IS NOT INITIAL .
+    SELECT SINGLE VENNO INTO LV_VENNO
+      FROM ZBBT_MM020
+      WHERE VENNO = ZBBT_MM020-VENNO.
+
+    IF SY-SUBRC &lt;&gt; 0.
+      MESSAGE E000 WITH '데이터베이스에 존재하지 않는 거래처번호입니다.'.
+      CLEAR ZBBT_MM020-VENNO.
+    ENDIF.
+  ENDIF.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_MATNO_F4 INPUT.
+  DATA: LT_RETURN       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.
+
+  TYPES: BEGIN OF TY_MATNO,
+           MATNO LIKE ZBBT_MM020-MATNO,
+           MATNM LIKE ZBBT_MM020-MATNM,
+         END OF TY_MATNO.
+  DATA : LT_MATNO TYPE TABLE OF TY_MATNO,
+         LS_MATNO TYPE TY_MATNO.
+
+  SELECT MATNO ,MATNM
+   INTO TABLE @LT_MATNO
+   FROM ZBBT_MM020
+  WHERE MATTYPE EQ 'FG'
+   ORDER BY MATNO.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'MATNO'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_MATNO-MATNO'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '판매제품'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = lt_MATNO            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

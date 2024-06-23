@@ -1,0 +1,193 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_MM080_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: ZBB_MM080_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_MM080_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_MM080_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0100 INPUT.
+  CASE OK_CODE.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE EXIT INPUT.
+  CASE OK_CODE.
+    WHEN 'CANCEL'.
+      LEAVE TO SCREEN 0.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+  ENDCASE.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0110 INPUT. " 단 건
+
+  CASE OK_CODE.
+    WHEN 'FC1'. " 승인
+      IF ZBBT_MM040-REQYNENO IS NOT INITIAL.
+        PERFORM CHECK_REQYNENO2.
+        PERFORM APPROVE_DATA TABLES GT_MM040_C.
+<font color ="#0000FF">*      PERFORM MODIFY_PR TABLES GT_MM040_C.</font>
+        LEAVE TO SCREEN 0.
+      ELSE.
+        MESSAGE I160 DISPLAY LIKE 'E'. " 구매요청승인/반려자를 입력해주세요.
+      ENDIF.
+    WHEN 'FC2'. " 반려
+      IF ZBBT_MM040-REQYNENO IS NOT INITIAL.
+        PERFORM CHECK_REQYNENO2.
+        LEAVE TO SCREEN 120. " 반려사유 입력 팝업
+      ELSE.
+        MESSAGE I160 DISPLAY LIKE 'E'. " 구매요청승인/반려자를 입력해주세요.
+      ENDIF.
+    WHEN 'FC3'. " 취소
+      CLEAR ZBBT_MM040-REQYNENO.
+      MESSAGE S010. " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0120 INPUT.
+
+  CASE OK_CODE.
+    WHEN 'FC4'. " 반려
+      IF ZBBT_MM040-REQDEC IS NOT INITIAL.
+        PERFORM DEC_DATA TABLES GT_MM040_C.
+        LEAVE TO SCREEN 0.
+      ELSE.
+        MESSAGE I159 DISPLAY LIKE 'E'. " 구매요청반려사유를 입력해주세요.
+      ENDIF.
+    WHEN 'FC5'. " 취소
+      CLEAR ZBBT_MM040-REQYNENO.
+      CLEAR ZBBT_MM040-REQDEC.
+      MESSAGE S010. " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0130  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE USER_COMMAND_0130 INPUT.
+
+  DATA : LV_REQYNENO TYPE STRING.
+
+  CASE OK_CODE.
+    WHEN 'FC6'. " 승인
+      IF ZBBT_MM040-REQYNENO IS NOT INITIAL.
+        PERFORM CHECK_REQYNENO.
+        PERFORM APPROVE_DATA TABLES GT_MM040.
+        LEAVE TO SCREEN 0.
+      ELSE.
+        MESSAGE I160 DISPLAY LIKE 'E'. " 구매요청승인/반려자를 입력해주세요.
+      ENDIF.
+    WHEN 'FC7'. " 취소
+      CLEAR ZBBT_MM040-REQYNENO.
+      MESSAGE S010. " 취소되었습니다.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_REQYNENO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_REQYNENO_F4 INPUT.
+
+  DATA : LT_RETURN LIKE TABLE OF DDSHRETVAL WITH HEADER LINE.
+
+  TYPES : BEGIN OF TY_REQYNENO,
+            EMPNO   LIKE ZBBT_HR020-EMPNO,
+            EMPNM   LIKE ZBBT_HR020-EMPNM,
+            EMPRANK LIKE ZBBT_HR020-EMPRANK,
+            DEPTNO  LIKE ZBBT_HR020-DEPTNO,
+          END OF TY_REQYNENO.
+  DATA : LT_REQYNENO TYPE TABLE OF TY_REQYNENO,
+         LS_REQYNENO TYPE TY_REQYNENO.
+
+  SELECT EMPNO, EMPNM, EMPRANK, DEPTNO
+  INTO CORRESPONDING FIELDS OF TABLE @LT_REQYNENO
+  FROM ZBBT_HR020
+  WHERE DELFLAG &lt;&gt; 'X'.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'EMPNO'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_REQYNENO-EMPNO'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '구매요청승인/반려자'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = LT_REQYNENO           "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE ON_MATNO_F4 INPUT.
+
+  DATA: LT_RETURN2       LIKE TABLE OF DDSHRETVAL      WITH HEADER LINE.
+
+  TYPES: BEGIN OF TY_MATNO,
+           MATNO LIKE ZBBT_MM020-MATNO,
+           MATNM LIKE ZBBT_MM020-MATNM,
+         END OF TY_MATNO.
+  DATA : LT_MATNO TYPE TABLE OF TY_MATNO,
+         LS_MATNO TYPE TY_MATNO.
+
+  SELECT MATNO, MATNM
+   INTO TABLE @LT_MATNO
+   FROM ZBBT_MM020
+  WHERE DELFLAG &lt;&gt; 'X'.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      RETFIELD     = 'MATNO'           "선택화면에서 선택한 필드명
+      DYNPPROG     = SY-CPROG
+      DYNPNR       = SY-DYNNR
+      DYNPROFIELD  = 'LT_MATNO-MATNO'   "선택한 필드를 받을 화면상의 개체 이름
+      WINDOW_TITLE = '자재코드'            "팝업 제목"
+      VALUE_ORG    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      VALUE_TAB    = LT_MATNO            "select때 사용한 인터널 테입블
+      RETURN_TAB   = LT_RETURN2.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

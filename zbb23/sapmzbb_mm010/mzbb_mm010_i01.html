@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM010_I01</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM010_I01</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include ZBB_SKELETON_I01</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          ZBB_SKELETON_I01</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  EXIT  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE exit INPUT.
+  PERFORM exit.
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_MEMBER  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0100  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0100 INPUT.
+  PERFORM user_command_0100.
+ENDMODULE.
+
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0110  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0110 INPUT.
+
+  CASE ok_code2.
+    WHEN 'FCODE1'.
+      PERFORM create_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE2'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  USER_COMMAND_0120  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE user_command_0120 INPUT.
+
+  CASE ok_code3.
+    WHEN 'FCODE3'.
+      PERFORM update_data.
+      LEAVE TO SCREEN 0.
+    WHEN 'FCODE4'.
+      MESSAGE s010.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATNO_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE on_matno_f4 INPUT.
+
+  DATA: lt_return       LIKE TABLE OF ddshretval      WITH HEADER LINE.
+
+  TYPES: BEGIN OF ty_matno,
+           matno LIKE zbbt_mm020-matno,
+           matnm LIKE zbbt_mm020-matnm,
+         END OF ty_matno.
+  DATA : lt_matno TYPE TABLE OF ty_matno,
+         ls_matno TYPE ty_matno.
+
+  SELECT matno ,matnm
+   INTO TABLE @lt_matno
+   FROM zbbt_mm020
+  WHERE mattype &lt;&gt; 'FG'
+    AND delflag &lt;&gt; 'X'
+   ORDER BY matno.
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+      retfield     = 'MATNO'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-cprog
+      dynpnr       = sy-dynnr
+      dynprofield  = 'LT_MATNO-MATNO'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '원자재'            "팝업 제목"
+      value_org    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_MATNO            "select때 사용한 인터널 테입블
+      return_tab   = lt_return.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  ON_MATTYPE_F4  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE on_mattype_f4 INPUT.
+
+  DATA: lt_return2       LIKE TABLE OF ddshretval      WITH HEADER LINE.
+
+  TYPES: BEGIN OF ty_mattype,
+           mattype  LIKE zbbt_mm020-mattype,
+<font color ="#0000FF">*           mattypet(20),</font>
+           mattypet TYPE dd07v-ddtext,
+         END OF ty_mattype.
+
+  DATA : lt_mattype TYPE TABLE OF ty_mattype,
+         ls_mattype TYPE ty_mattype.
+
+<font color ="#0000FF">*  SELECT DISTINCT mattype</font>
+  SELECT DISTINCT mattype
+     INTO CORRESPONDING FIELDS OF TABLE lt_mattype
+     FROM zbbt_mm020
+    WHERE mattype &lt;&gt; 'FG'.
+
+  LOOP AT lt_mattype INTO ls_mattype.
+
+    IF  ls_mattype-mattype EQ 'RM'.
+      ls_mattype-mattypet = '원자재'.
+    ELSE.
+      ls_mattype-mattypet = '포장재'.
+    ENDIF.
+    MODIFY lt_mattype FROM ls_mattype TRANSPORTING mattypet.
+
+  ENDLOOP.
+
+
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+<font color ="#0000FF">*     retfield     = 'MATTYPE'           "선택화면에서 선택한 필드명</font>
+      retfield     = 'MATTYPE'           "선택화면에서 선택한 필드명
+      dynpprog     = sy-cprog
+      dynpnr       = sy-dynnr
+<font color ="#0000FF">*     dynprofield  = 'LT_MATTYPE-MATTYPE'   "선택한 필드를 받을 화면상의 개체 이름</font>
+      dynprofield  = 'ZBBT_MM020-MATTYPE'   "선택한 필드를 받을 화면상의 개체 이름
+      window_title = '자재타입'            "팝업 제목"
+      value_org    = 'S'                 "Return종류 C [Cell], S[Structure]
+    TABLES
+      value_tab    = lt_MATTYPE            "select때 사용한 인터널 테입블
+      return_tab   = lt_return2.        "선택한 값이 리턴될 인터널 테이블
+
+ENDMODULE.
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*&      Module  CHECK_DATA  INPUT</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*       text</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+MODULE check_data INPUT.
+
+  DATA: lv_matno   TYPE zbbt_mm020-matno,
+        lv_mattype TYPE zbbt_mm020-mattype,
+        lv_venno   TYPE zbbt_mm020-venno.
+
+  IF zbbt_mm020-matno IS NOT INITIAL.
+    SELECT SINGLE matno INTO lv_matno
+        FROM zbbt_mm020
+        WHERE matno = zbbt_mm020-matno.
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE '올바른 값을 입력해주세요.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+  IF zbbt_mm020-mattype IS NOT INITIAL.
+    SELECT SINGLE mattype INTO lv_mattype
+        FROM zbbt_mm020
+        WHERE mattype = zbbt_mm020-mattype.
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE '올바른 값을 입력해주세요.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+  IF zbbt_mm020-venno IS NOT INITIAL.
+    SELECT SINGLE venno INTO lv_venno
+        FROM zbbt_mm020
+        WHERE venno = zbbt_mm020-venno.
+    IF sy-subrc &lt;&gt; 0.
+      MESSAGE '올바른 값을 입력해주세요.' TYPE 'E'.
+    ENDIF.
+  ENDIF.
+
+ENDMODULE.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

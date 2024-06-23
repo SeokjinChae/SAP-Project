@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>ZBB_FI_POST_DOCUMENT_KR</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for function: ZBB_FI_POST_DOCUMENT_KR</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  [MM] 구매오더 전표 생성_KR</b></font>
+<hr>
+<pre width="100">
+FUNCTION zbb_fi_post_document_kr.
+<font color ="#0000FF">*"----------------------------------------------------------------------</font>
+<font color ="#0000FF">*"*"Local Interface:</font>
+<font color ="#0000FF">*"  IMPORTING</font>
+<font color ="#0000FF">*"     REFERENCE(IV_PURORDNO) TYPE  ZBBE_PURORDNO</font>
+<font color ="#0000FF">*"     REFERENCE(IV_VENNO) TYPE  ZBBE_VENNO</font>
+<font color ="#0000FF">*"     REFERENCE(IV_PORDERDT) TYPE  ZBBE_PORDERDT</font>
+<font color ="#0000FF">*"     REFERENCE(IV_PURTOTAL) TYPE  ZBBE_PURTOTAL</font>
+<font color ="#0000FF">*"     REFERENCE(IV_CURRENCY) TYPE  ZBBE_CURRENCY</font>
+<font color ="#0000FF">*"     REFERENCE(IV_MATNO) TYPE  ZBBE_MATNO</font>
+<font color ="#0000FF">*"     REFERENCE(IV_QUANTITY) TYPE  ZBBE_QUANTITY</font>
+<font color ="#0000FF">*"     REFERENCE(IV_UNIT) TYPE  ZBBE_UNIT</font>
+<font color ="#0000FF">*"     REFERENCE(IV_TCODE) TYPE  TCODE</font>
+<font color ="#0000FF">*"----------------------------------------------------------------------</font>
+<font color ="#0000FF">*  MM모듈 KR(거래처송장) 자동 전표 FM for 김한빈,,, 김한빈님께 바칩니다,,,,</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*       <a href ="global-zbb_fi_post_document_kr.html">Global data declarations</a></font>
+" 원재료 100004 / 외상매입금 200001
+" 전표 Header
+ DATA : gs_fi020 TYPE zbbt_fi020,
+        gt_fi020 TYPE TABLE OF zbbt_fi020,
+
+" 전표 Item
+        gs_bseg TYPE zbbt_fi030,
+        gt_bseg TYPE TABLE OF zbbt_fi030,
+        gs_fi030 TYPE zbbt_fi030,
+        gt_fi030 TYPE TABLE OF zbbt_fi030.
+
+ DATA : gv_number TYPE c LENGTH 11, " 전표번호
+        gv_name TYPE zbbt_mm030-vennm,  " 거래처명
+        gv_price TYPE zbbt_fi030-accprice. " 계정 금액
+
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 전표 HEADER 데이터 생성</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+ PERFORM get_accdcmuno CHANGING gv_number. " 자동 전표 채번
+
+ SELECT SINGLE vennm FROM zbbt_mm030 INTO gv_name
+        WHERE venno EQ iv_venno.
+
+   gs_fi020-compno = 2000.
+   gs_fi020-fiyear = sy-datum(4).
+   gs_fi020-accdcmuno = gv_number.
+   gs_fi020-period = sy-datum+4(2).
+   gs_fi020-acctype = 'KR'.
+   gs_fi020-pstdate = iv_porderdt.
+   gs_fi020-dcmntdate = iv_porderdt.
+   gs_fi020-currency = iv_currency.
+   gs_fi020-accdcmtxt = | { gv_name }_매입전표 |.
+   gs_fi020-create_dt = sy-datum.
+   gs_fi020-create_tm = sy-uzeit.
+   gs_fi020-cuser = sy-uname.
+   gs_fi020-tcode = iv_tcode.
+
+   APPEND gs_fi020 TO gt_fi020.
+
+   INSERT zbbt_fi020 FROM TABLE gt_fi020.
+
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+<font color ="#0000FF">* 전표 ITEM 데이터 생성</font>
+<font color ="#0000FF">*----------------------------------------------------------------------*</font>
+  DATA lv_item TYPE i.
+  lv_item = 1.
+  REFRESH gt_bseg.
+  CLEAR   gs_bseg.
+
+<font color ="#0000FF">*  PERFORM get_accprice USING iv_currency</font>
+<font color ="#0000FF">*                             iv_ptotal</font>
+<font color ="#0000FF">*                    CHANGING gv_price.</font>
+
+  MOVE-CORRESPONDING gs_fi020 TO gs_bseg.
+
+  gs_bseg-venno = iv_venno.
+  gs_bseg-purordno = iv_purordno.
+  gs_bseg-create_dt = sy-datum.
+  gs_bseg-create_tm = sy-uzeit.
+  gs_bseg-cuser = sy-uname.
+  gs_bseg-accprice = iv_purtotal.
+
+     DO 2 TIMES.
+
+      CASE lv_item.
+        WHEN 1.
+
+          READ TABLE gt_fi030 INTO gs_fi030 INDEX lv_item.
+
+          gs_bseg-itemno = lv_item.
+          gs_bseg-accountno = '100004'. " 원재료
+          gs_bseg-dcind = 'S'.
+          gs_bseg-acctxt = | { gv_name }_매입전표_{ lv_item } |.
+
+        WHEN 2.
+
+          READ TABLE gt_fi030 INTO gs_fi030 INDEX lv_item.
+
+          gs_bseg-itemno = lv_item.
+          gs_bseg-accountno = '200001'. " 외상매입금
+          gs_bseg-dcind = 'H'.
+          gs_bseg-acctxt = | { gv_name }_매입전표_{ lv_item } |.
+
+      ENDCASE.
+
+      APPEND gs_bseg TO gt_bseg.
+      ADD 1 TO lv_item.
+
+    ENDDO.
+
+
+     INSERT zbbt_fi030 FROM TABLE gt_bseg.
+
+<font color ="#0000FF">*     MESSAGE i027(zbb_msg) WITH gv_number DISPLAY LIKE 'S'.</font>
+
+ENDFUNCTION.
+
+
+<font color ="#0000FF">*Messages</font>
+<font color ="#0000FF">*----------------------------------------------------------</font>
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">* Message class: ZBB_MSG</font>
+<font color ="#0000FF">*002   데이터 생성에 실패했습니다.</font>
+<font color ="#0000FF">*027   &전표가 생성되었습니다.</font>
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>

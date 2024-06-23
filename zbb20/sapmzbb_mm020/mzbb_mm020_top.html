@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<title>MZBB_MM020_TOP</title>
+</head>
+<body bgcolor="#FFFFE0">
+<font size="3" face = "Arial" color="#000000"><b>Code listing for: MZBB_MM020_TOP</b></font>
+<br>
+<font size="3" face = "Arial" color="#000000"><b>Description:  Include MZBB_MM020_TOP</b></font>
+<hr>
+<pre width="100">
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+<font color ="#0000FF">*& Include          MZBB_MM020_TOP</font>
+<font color ="#0000FF">*&---------------------------------------------------------------------*</font>
+
+<font color ="#0000FF">*     구매오더헤더, 구매오더아이템, 입고내역, 자재마스터, 재고 현황, 창고마스터, 생산실적</font>
+TABLES: ZBBT_MM050, ZBBT_MM070, ZBBT_MM020, ZBBT_MM090, ZBBT_MM010, ZBBT_PP070. ", ZBBT_MM060.
+DATA: OK_CODE LIKE SY-UCOMM , "ok code
+      DYNNR   TYPE SY-DYNNR. "화면 지정 번호
+
+DATA: GS_MM020 TYPE ZBBT_MM020, "재고명
+GS_MM090 TYPE ZBBT_MM090, "재고
+GT_MM090 TYPE TABLE OF ZBBT_MM090,
+
+GS_MM010 TYPE ZBBT_MM010. "창고
+<font color ="#0000FF">*</font>
+<font color ="#0000FF">*      GS_MM070 TYPE ZBBT_MM070, "입고</font>
+<font color ="#0000FF">*      GT_MM070 TYPE TABLE OF ZBBT_MM070,</font>
+DATA: BEGIN OF GS_MM070.
+        include structure <a href ="zbbt_mm070/dictionary-zbbt_mm070.html">ZBBT_MM070</a>. "입고(보기전용)
+DATA:   EXPIRDT TYPE ZBBT_MM090-EXPIRDT,
+      END OF GS_MM070,
+      GT_MM070 LIKE TABLE OF GS_MM070.
+DATA: BEGIN OF GS_MM070_2.
+        include structure <a href ="zbbt_mm070/dictionary-zbbt_mm070.html">ZBBT_MM070</a>. "입고(보기전용)
+DATA:   EXPIRDT TYPE ZBBT_MM090-EXPIRDT,
+        MDELFLAG TYPE ZBBT_MM090-MDELFLAG,
+      END OF GS_MM070_2.
+
+
+
+<font color ="#0000FF">* Tab 1 : 원자재 구매 입고</font>
+TYPES: BEGIN OF ZTY_LINE.
+         include structure <a href ="zbbt_mm050/dictionary-zbbt_mm050.html">ZBBT_MM050</a>.
+TYPES:   STATUS TYPE C LENGTH 1,    "신호등
+         COLOR  TYPE C LENGTH 4,
+         MATNM  TYPE ZBBT_MM020-MATNM,
+         STORNO TYPE ZBBT_MM010-STORNO,
+<font color ="#0000FF">*         STORNM   TYPE ZBBT_MM010-STORNM,</font>
+       END OF ZTY_LINE.
+DATA: GS_MM050 TYPE ZTY_LINE,
+      GT_MM050 TYPE TABLE OF ZTY_LINE.
+
+<font color ="#0000FF">* Tab 2 : 완제품 생산 입고</font>
+DATA: BEGIN OF GS_PP070.
+        include structure <a href ="zbbt_pp070/dictionary-zbbt_pp070.html">ZBBT_PP070</a>.
+DATA:   STATUS   TYPE C LENGTH 1,
+        COLOR(4),
+        INTYPE   TYPE ZBBT_MM070-INTYPE,
+        "BATCHNO  TYPE ZBBT_MM070-BATCHNO,
+        STORNO   TYPE ZBBT_MM070-STORNO,
+        MATNM    TYPE ZBBT_MM020-MATNM,
+      END OF GS_PP070.
+DATA: GT_PP070 LIKE TABLE OF GS_PP070.
+
+<font color ="#0000FF">* Tab 2 : 완제품 생산 입고</font>
+DATA: BEGIN OF GS_MM090_2.
+        include structure <a href ="zbbt_mm090/dictionary-zbbt_mm090.html">ZBBT_MM090</a>.
+DATA:   STATUS   TYPE C LENGTH 1,
+        COLOR(4),
+        STORNM   TYPE ZBBT_MM010-STORNM,
+        MATNM    TYPE ZBBT_MM020-MATNM,
+      END OF GS_MM090_2.
+DATA: GT_MM090_2 LIKE TABLE OF GS_MM090_2.
+
+<font color ="#0000FF">* Tab 4 : 입고 내역 조회</font>
+DATA: BEGIN OF GS_MM070_V.
+        include structure <a href ="zbbt_mm070/dictionary-zbbt_mm070.html">ZBBT_MM070</a>. "입고(보기전용)
+DATA:   MATNM     TYPE ZBBT_MM020-MATNM,
+        " STATUS    TYPE C LENGTH 1,
+        INTYPETXT TYPE STRING,
+        STORNM    TYPE ZBBT_MM010-STORNM,
+      END OF GS_MM070_V,
+      GT_MM070_V LIKE TABLE OF GS_MM070_V.
+
+DATA: GO_ALV_GRID1  TYPE REF TO CL_GUI_ALV_GRID, "tab별 그리드 컨테이너
+      GO_CONTAINER1 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+<font color ="#0000FF">* -----tab 2</font>
+      GO_ALV_GRID2  TYPE REF TO CL_GUI_ALV_GRID,
+      GO_CONTAINER2 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+<font color ="#0000FF">* -----tab 3</font>
+      GO_ALV_GRID4  TYPE REF TO CL_GUI_ALV_GRID,
+      GO_CONTAINER4 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+
+<font color ="#0000FF">* -----tab 4 전용 split data</font>
+      GO_CONTAINER3 TYPE REF TO CL_GUI_CUSTOM_CONTAINER,
+      GO_DOCKING    TYPE REF TO CL_GUI_DOCKING_CONTAINER.
+<font color ="#0000FF">*      go_split       TYPE REF TO cl_gui_splitter_container.</font>
+
+DATA: GO_CONT1 TYPE REF TO CL_GUI_CONTAINER, " tab 1
+      GO_CONT2 TYPE REF TO CL_GUI_CONTAINER, " tab 2
+      GO_CONT3 TYPE REF TO CL_GUI_CONTAINER. " tab 3
+
+DATA: GO_ALV_GRID3 TYPE REF TO CL_GUI_ALV_GRID.
+
+" layout을 위해 필요한 data
+DATA: GS_LAYOUT  TYPE LVC_S_LAYO,
+      GS_LAYOUT2 TYPE LVC_S_LAYO, "split 1
+      GS_LAYOUT3 TYPE LVC_S_LAYO.
+
+" cell color
+DATA: GS_FIELD_COLOR TYPE LVC_S_SCOL.
+
+"filter
+DATA: GS_FILTER TYPE LVC_S_FILT,
+      GT_FILTER TYPE LVC_T_FILT.
+
+"Sort
+DATA : GS_SORT  TYPE LVC_S_SORT,
+       GT_SORT  TYPE LVC_T_SORT,
+       GS_SORT3 TYPE LVC_S_SORT,
+       GT_SORT3 TYPE LVC_T_SORT.
+
+" field catalog
+DATA : GS_FCAT      TYPE LVC_S_FCAT,  " fcat structure
+       GT_FCAT      TYPE LVC_T_FCAT,  " 0110 : 원자재 입고
+       GT_FCAT_0120 TYPE LVC_T_FCAT,  " 0120 : 완제품/불량품 입고
+       GT_FCAT_0130 TYPE LVC_T_FCAT,  " 0130 : 유통기한 초과 폐기 입고
+       GT_FCAT_VIEW TYPE LVC_T_FCAT.  " 0140 : 입고 내역 조회
+
+<font color ="#0000FF">* Class</font>
+CLASS: LCL_EVENT_HANDLER DEFINITION DEFERRED.
+DATA: GO_HANDLER TYPE REF TO LCL_EVENT_HANDLER.
+
+"레이아웃 요소
+DATA: GV_R1    VALUE 'X',
+      GV_R2,
+      GV_FLAG  TYPE STRING,
+      GV_COM   TYPE STRING,
+      GV_INCOM TYPE STRING.
+
+<font color ="#0000FF">*"select - where 동적변수</font>
+DATA: GV_WHERE1    TYPE STRING,
+      GV_WHERE2    TYPE STRING,
+      GV_WHERE3    TYPE STRING,
+
+      GV_WHERE1_PP TYPE STRING,
+      GV_WHERE2_PP TYPE STRING,
+      GV_WHERE3_PP TYPE STRING.
+
+DATA: GV_ROWID   TYPE I,
+      GV_EXPIRDT TYPE ZBBT_MM090-EXPIRDT.
+
+CONTROLS: MY_TABSTRIP TYPE TABSTRIP.
+</pre>
+<hr>
+<font size="2" face = "Sans Serif">Extracted by Direct Download Enterprise version 1.3.1 - E.G.Mellodew. 1998-2005 UK. Sap Release 754
+</font>
+</body>
+</html>
